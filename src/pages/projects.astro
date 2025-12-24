@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectFilter from '../components/pokemon/ProjectFilter';
+import { fetchProjects } from '../lib/fetchProjects';
+
+// Fetch ALL projects from Sanity
+const projects = await fetchProjects();
+
+// Transform Sanity data
+const transformedProjects = projects.map((project) => ({
+  id: project._id,
+  name: project.name,
+  description: project.description,
+  types: project.types,
+  techs: project.techs,
+  link: project.link,
+  github: project.github,
+}));
+---
+
+<BaseLayout title="Projects - Logan's Portfolio">
+  <main class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- Header -->
+    <section class="text-center mb-12 pt-8">
+      <h1 class="font-pokemon text-4xl md:text-5xl text-poke-yellow mb-4">
+        COMPLETE POKÉDEX
+      </h1>
+      <p class="text-xl text-white/80 mb-8">
+        All {projects.length} projects I've caught and trained
+      </p>
+      <a
+        href="/"
+        class="inline-block bg-poke-red hover:bg-poke-red/80 transition-colors px-6 py-3 rounded-lg font-bold text-white"
+      >
+        ← Back to Home
+      </a>
+    </section>
+
+    <!-- Filter and Projects -->
+    <ProjectFilter projects={transformedProjects} client:load />
+  </main>
+</BaseLayout>

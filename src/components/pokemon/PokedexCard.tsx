@@ -5,6 +5,7 @@ interface Project {
   id: string;
   name: string;
   description: string;
+  shortDescription: string;
   types: string[];
   techs: string[];
   link?: string;
@@ -71,7 +72,7 @@ export default function PokedexCard({ project, index }: PokedexCardProps) {
             </h3>
             
             <p className="text-sm text-white/90 mb-4 flex-grow">
-              {project.description}
+              {project.shortDescription}
             </p>
             
             <div className="flex flex-wrap gap-2 mb-4">

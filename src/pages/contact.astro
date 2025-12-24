@@ -1,0 +1,152 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const accessKey = import.meta.env.PUBLIC_WEB3FORMS_ACCESS_KEY;
+---
+
+<BaseLayout title="Contact - Logan's Portfolio">
+  <main class="container mx-auto px-4 py-8 max-w-3xl">
+    <!-- Header -->
+    <section class="text-center mb-12 pt-8">
+      <h1 class="font-pokemon text-4xl md:text-5xl text-poke-yellow mb-4">
+        LET'S CONNECT
+      </h1>
+      <p class="text-xl text-white/80 mb-8">
+        Interested in working together? Send me a message!
+      </p>
+      
+      <a
+        href="/"
+        class="inline-block bg-poke-red hover:bg-poke-red/80 transition-colors px-6 py-3 rounded-lg font-bold text-white"
+      >
+        ← Back to Home
+      </a>
+    </section>
+
+    <!-- Contact Form -->
+    <div class="bg-gradient-to-br from-poke-blue/20 to-poke-psychic/20 rounded-2xl p-8 md:p-12 border-4 border-poke-yellow/30">
+      <h2 class="text-2xl font-bold text-poke-yellow mb-6 text-center">Send a Message</h2>
+      
+      <!-- Success Message (hidden by default) -->
+      <div id="success-message" class="hidden text-center">
+        <div class="mb-6">
+          <div class="inline-block bg-poke-yellow/20 rounded-full p-4 mb-4">
+            <svg class="w-16 h-16 text-poke-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-2xl font-bold text-poke-yellow mb-4">Message Sent Successfully!</h3>
+        <p class="text-white/80 mb-6">
+          Thanks for reaching out! I'll get back to you as soon as possible.
+        </p>
+        <button
+          id="reset-form-btn"
+          class="bg-poke-yellow hover:bg-poke-yellow/80 transition-colors px-6 py-3 rounded-lg font-bold text-poke-black"
+        >
+          Send Another Message
+        </button>
+      </div>
+
+      <!-- Error Message (hidden by default) -->
+      <div id="error-message" class="hidden text-center mb-6 p-4 bg-poke-red/20 border-2 border-poke-red/50 rounded-lg">
+        <p class="text-poke-red font-semibold">
+          Something went wrong. Please try again or reach out directly via email.
+        </p>
+      </div>
+      
+      <form id="contact-form" class="space-y-5">
+        <input type="hidden" name="access_key" value={accessKey} />
+        
+        <!-- Honeypot field - hidden from users, bots might fill it -->
+        <input
+          type="text"
+          name="website"
+          tabindex="-1"
+          autocomplete="off"
+          style="position: absolute; left: -9999px;"
+          aria-hidden="true"
+        />
+
+        <div>
+            <label for="name" class="block text-white mb-2 text-sm font-semibold">Name *</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                class="w-full px-4 py-3 rounded-lg bg-black/30 border-2 border-white/20 text-white focus:border-poke-yellow focus:outline-none"
+                placeholder="Your name"
+            />
+        </div>
+
+        <div>
+          <label for="email" class="block text-white mb-2 text-sm font-semibold">Email *</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            required
+            class="w-full px-4 py-3 rounded-lg bg-black/30 border-2 border-white/20 text-white focus:border-poke-yellow focus:outline-none"
+            placeholder="your.email@example.com"
+          />
+        </div>
+
+        <div>
+          <label for="subject" class="block text-white mb-2 text-sm font-semibold">Subject *</label>
+          <input
+            type="text"
+            id="subject"
+            name="subject"
+            required
+            class="w-full px-4 py-3 rounded-lg bg-black/30 border-2 border-white/20 text-white focus:border-poke-yellow focus:outline-none"
+            placeholder="What's this about?"
+          />
+        </div>
+
+        <div>
+          <label for="message" class="block text-white mb-2 text-sm font-semibold">Message *</label>
+          <textarea
+            id="message"
+            name="message"
+            rows="6"
+            required
+            class="w-full px-4 py-3 rounded-lg bg-black/30 border-2 border-white/20 text-white focus:border-poke-yellow focus:outline-none resize-none"
+            placeholder="Tell me more..."
+          ></textarea>
+        </div>
+
+        <button
+          type="submit"
+          id="submit-btn"
+          class="w-full bg-poke-yellow hover:bg-poke-yellow/80 transition-colors px-6 py-4 rounded-lg font-bold text-poke-black text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span id="submit-text">Send Message →</span>
+          <span id="submit-loading" class="hidden">Sending...</span>
+        </button>
+      </form>
+
+      <!-- Alternative Contact -->
+      <div class="mt-8 pt-8 border-t-2 border-white/10 text-center">
+        <p class="text-white/60 text-sm mb-3">Or reach out directly:</p>
+        <a
+          href="mailto:loganravin4@gmail.com"
+          class="text-poke-yellow hover:text-poke-yellow/80 transition-colors font-semibold"
+        >
+          loganravin4@gmail.com
+        </a>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<script>
+  import { initContactForm } from '../lib/contactForm';
+  
+  // Initialize form when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initContactForm);
+  } else {
+    initContactForm();
+  }
+</script>

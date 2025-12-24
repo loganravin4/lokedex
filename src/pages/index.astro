@@ -2,33 +2,22 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PokedexCard from '../components/pokemon/PokedexCard';
 import TypeBadge from '../components/pokemon/TypeBadge';
+import { fetchFeaturedProjects } from '../lib/fetchProjects';
 
-// Sample projects - you'll replace this with Sanity data later
-const projects = [
-  {
-    id: '1',
-    name: 'WANDR',
-    description: 'React Native social discovery app with real-time features and location-based recommendations.',
-    types: ['fullstack'],
-    techs: ['React Native', 'TypeScript', 'Node.js', 'PostgreSQL'],
-    github: 'https://github.com/yourusername/wandr',
-  },
-  {
-    id: '2',
-    name: 'Via Analytics',
-    description: 'Industrial membrane filtration monitoring platform with 11 specialized Grafana dashboards.',
-    types: ['fullstack'],
-    techs: ['Grafana', 'InfluxDB', 'React', 'TypeScript', 'PostgreSQL'],
-  },
-  {
-    id: '3',
-    name: 'Premalytics',
-    description: 'Premier League analytics platform with ML-powered predictions and player performance tracking.',
-    types: ['ml', 'fullstack'],
-    techs: ['Python', 'PyTorch', 'React', 'FastAPI', 'PostgreSQL'],
-    github: 'https://github.com/yourusername/premalytics',
-  },
-];
+// Fetch featured projects from Sanity
+const projects = await fetchFeaturedProjects();
+
+// Transform Sanity data to match component props
+const transformedProjects = projects.map((project) => ({
+  id: project._id,
+  name: project.name,
+  description: project.description,
+  shortDescription: project.shortDescription,
+  types: project.types,
+  techs: project.techs,
+  link: project.link,
+  github: project.github,
+}));
 
 const techStack = [
   { type: 'electric', tech: 'TypeScript' },
@@ -93,12 +82,12 @@ const techStack = [
           PROJECT POKÉDEX
         </h2>
         <p class="text-white/80">
-          A collection of projects I've caught and trained
+          The Elite Four of my portfolio
         </p>
       </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {projects.map((project, index) => (
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        {transformedProjects.map((project, index) => (
           <PokedexCard project={project} index={index} client:load />
         ))}
       </div>
@@ -111,23 +100,22 @@ const techStack = [
       </h2>
       <div class="space-y-4 text-white/90">
         <p>
-          Hey! I'm Logan, a Computer Science and Computer Engineering student at Northeastern University 
-          with a 3.96 GPA. Currently working as a Software Engineer Co-op at NExT Consulting, 
-          building analytics platforms for Via Separations.
+          Hey! I'm Logan, an Honors Computer Engineering and Computer Science student at Northeastern University. 
+          I'm currently working as a Software Engineer at NExT Consulting, 
+          building full-stack data-driven and ML-powered software solutions for external clients.
         </p>
         <p>
-          I serve as Technical Lead at Student Government Association managing 8 engineers and 
-          work as a Full-Stack Engineer at Forge Product Development Lab.
+          On campus, I serve as a Technical Lead at the Student Government Association and 
+          work as a Machine Learning Engineer at Artificial Intelligence Northeastern.
         </p>
         <p>
-          When I'm not coding, you'll find me involved with UTSAV (Northeastern's South Asian cultural org), 
-          mentoring through JUMP, gaming on Roblox, or vibing to my 60,000 minutes of Spotify.
+          When I'm not coding, you'll find me weightlifting, gaming on Mario Kart, or vibing to my 76,533 minutes of Spotify.
         </p>
       </div>
       
       <div class="flex gap-4 mt-8">
         <a
-          href="https://github.com/yourusername"
+          href="https://github.com/loganravin4"
           target="_blank"
           rel="noopener noreferrer"
           class="bg-poke-black hover:bg-poke-black/80 transition-colors px-6 py-3 rounded-lg font-bold text-white"
@@ -136,28 +124,15 @@ const techStack = [
         </a>
         
         <a
-          href="https://linkedin.com/in/yourprofile"
+          href="https://www.linkedin.com/in/logan-ravinuthala/"
           target="_blank"
           rel="noopener noreferrer"
           class="bg-poke-blue hover:bg-poke-blue/80 transition-colors px-6 py-3 rounded-lg font-bold text-white"
         >
           LinkedIn
         </a>
-        
-        <a
-          href="mailto:your.email@northeastern.edu"
-          class="bg-poke-red hover:bg-poke-red/80 transition-colors px-6 py-3 rounded-lg font-bold text-white"
-        >
-          Contact
-        </a>
       </div>
     </section>
-
-    <!-- Footer -->
-    <footer class="text-center py-8 text-white/60 font-pokemon text-xs">
-      <p>Made with 💙 by Logan</p>
-      <p class="mt-2">Powered by Astro • TypeScript • Tailwind CSS</p>
-    </footer>
   </main>
 </BaseLayout>
 

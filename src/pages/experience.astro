@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ExperienceCard from '../components/ExperienceCard';
+import { fetchExperiences } from '../lib/fetchExperiences';
+
+// Fetch all experiences from Sanity
+const experiences = await fetchExperiences();
+---
+
+<BaseLayout title="Experience - Logan's Portfolio">
+  <main class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- Header -->
+    <section class="text-center mb-12 pt-8">
+      <h1 class="font-pokemon text-4xl md:text-5xl text-poke-yellow mb-4">
+        EXPERIENCE
+      </h1>
+      <p class="text-xl text-white/80 mb-8">
+        My professional journey and key projects
+      </p>
+      
+      <a
+        href="/"
+        class="inline-block bg-poke-red hover:bg-poke-red/80 transition-colors px-6 py-3 rounded-lg font-bold text-white"
+      >
+        ← Back to Home
+      </a>
+    </section>
+
+    <!-- Experience Timeline -->
+    <section>
+      <div class="space-y-8">
+        {experiences.map((experience, index) => (
+          <ExperienceCard
+            title={experience.title}
+            company={experience.company}
+            companyLogo={experience.companyLogo}
+            companyWebsite={experience.companyWebsite}
+            location={experience.location}
+            startDate={experience.startDate}
+            endDate={experience.endDate}
+            current={experience.current}
+            description={experience.description}
+            projects={experience.projects}
+            index={index}
+            client:load
+          />
+        ))}
+      </div>
+    </section>
+  </main>
+</BaseLayout>
