@@ -6,8 +6,9 @@ export const GET: APIRoute = async () => {
   const spotifyRefreshToken = import.meta.env.SPOTIFY_REFRESH_TOKEN;
 
   if (!spotifyClientId || !spotifyClientSecret || !spotifyRefreshToken) {
-    return new Response(JSON.stringify({ error: 'Spotify credentials not configured' }), {
-      status: 503,
+    // Return null instead of error so widget can show fallback
+    return new Response(JSON.stringify(null), {
+      status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   }
@@ -27,7 +28,13 @@ export const GET: APIRoute = async () => {
     });
 
     if (!tokenResponse.ok) {
-      throw new Error('Failed to get access token');
+      const errorData = await tokenResponse.text();
+      console.error('Spotify token error:', errorData);
+      // Return null instead of error so widget can show fallback
+      return new Response(JSON.stringify(null), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     const { access_token } = await tokenResponse.json();
@@ -75,8 +82,9 @@ export const GET: APIRoute = async () => {
     });
   } catch (error) {
     console.error('Spotify API error:', error);
-    return new Response(JSON.stringify({ error: 'Failed to fetch Spotify stats' }), {
-      status: 500,
+    // Return null instead of error so widget can show fallback
+    return new Response(JSON.stringify(null), {
+      status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   }

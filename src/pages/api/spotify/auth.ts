@@ -8,7 +8,12 @@ import type { APIRoute } from 'astro';
  */
 export const GET: APIRoute = async ({ url }) => {
   const clientId = import.meta.env.SPOTIFY_CLIENT_ID;
-  const redirectUri = url.origin + '/api/spotify/callback';
+  
+  // Spotify requires explicit IP addresses for localhost, not "localhost"
+  let redirectUri = url.origin + '/api/spotify/callback';
+  if (redirectUri.includes('localhost')) {
+    redirectUri = redirectUri.replace('localhost', '127.0.0.1');
+  }
   
   if (!clientId) {
     return new Response(

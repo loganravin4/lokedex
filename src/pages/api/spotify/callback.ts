@@ -26,7 +26,12 @@ export const GET: APIRoute = async ({ url, request }) => {
 
   const clientId = import.meta.env.SPOTIFY_CLIENT_ID;
   const clientSecret = import.meta.env.SPOTIFY_CLIENT_SECRET;
-  const redirectUri = url.origin + '/api/spotify/callback';
+  
+  // Spotify requires explicit IP addresses for localhost, not "localhost"
+  let redirectUri = url.origin + '/api/spotify/callback';
+  if (redirectUri.includes('localhost')) {
+    redirectUri = redirectUri.replace('localhost', '127.0.0.1');
+  }
 
   if (!clientId || !clientSecret) {
     return new Response(
