@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PokedexCard from '../components/projects/PokedexCard';
 import TypeBadge from '../components/projects/TypeBadge';
 import TypingTitle from '../components/features/TypingTitle';
+import SpotifyWidget from '../components/features/SpotifyWidget';
 import AnalyticsTracker from '../components/analytics/AnalyticsTracker';
 import { fetchFeaturedProjects } from '../lib/fetchProjects';
 
@@ -178,6 +179,11 @@ const techStack = [
         <p>
           When I'm not coding, you'll find me weightlifting, going on long walks with no destination, gaming on Mario Kart or Pokémon, or vibing with my 76,533 minutes on Spotify (will almost ALWAYS be The Weeknd).
         </p>
+      </div>
+
+      <!-- Spotify Widget -->
+      <div class="mt-8">
+        <SpotifyWidget totalMinutes={76533} client:load />
       </div>
       
       <!-- Education -->

@@ -1,0 +1,86 @@
+import type { APIRoute } from 'astro';
+
+/**
+ * Spotify Now Playing API Endpoint
+ */
+export const GET: APIRoute = async () => {
+  const spotifyClientId = import.meta.env.SPOTIFY_CLIENT_ID;
+  const spotifyClientSecret = import.meta.env.SPOTIFY_CLIENT_SECRET;
+  const spotifyRefreshToken = import.meta.env.SPOTIFY_REFRESH_TOKEN;
+
+  if (!spotifyClientId || !spotifyClientSecret || !spotifyRefreshToken) {
+    return new Response(JSON.stringify({ error: 'Spotify credentials not configured' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  try {
+    // Get access token
+    const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${btoa(`${spotifyClientId}:${spotifyClientSecret}`)}`,
+      },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: spotifyRefreshToken,
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      throw new Error('Failed to get access token');
+    }
+
+    const { access_token } = await tokenResponse.json();
+
+    // Get currently playing track
+    const nowPlayingResponse = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+      headers: {
+        'Authorization': `Bearer ${access_token}`,
+      },
+    });
+
+    if (nowPlayingResponse.status === 204 || !nowPlayingResponse.ok) {
+      // No track currently playing
+      return new Response(JSON.stringify(null), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const data = await nowPlayingResponse.json();
+    
+    if (!data.item) {
+      return new Response(JSON.stringify(null), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const track = {
+      name: data.item.name,
+      artist: data.item.artists.map((a: any) => a.name).join(', '),
+      album: data.item.album.name,
+      albumArt: data.item.album.images[0]?.url || '',
+      url: data.item.external_urls.spotify,
+      isPlaying: data.is_playing,
+    };
+
+    return new Response(JSON.stringify(track), {
+      status: 200,
+      headers: { 
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+      },
+    });
+  } catch (error) {
+    console.error('Spotify API error:', error);
+    return new Response(JSON.stringify({ error: 'Failed to fetch Spotify data' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+};
+
