@@ -57,27 +57,27 @@ export const GET: APIRoute = async () => {
 
     const topArtistsData = topArtistsResponse.ok ? await topArtistsResponse.json() : null;
 
+    const recentTracks = recentTracksData?.items?.map((item: any) => ({
+      name: item.track.name,
+      artist: item.track.artists.map((a: any) => a.name).join(', '),
+      album: item.track.album.name,
+      albumArt: item.track.album.images[0]?.url || '',
+      url: item.track.external_urls.spotify,
+      isPlaying: false,
+    })) || [];
+
     const stats = {
-      totalMinutes: 76533, // You can calculate this from listening history if needed
       topArtists: topArtistsData?.items?.map((artist: any) => ({
         name: artist.name,
-        count: 0, // Spotify doesn't provide play count directly
       })) || [],
-      recentTracks: recentTracksData?.items?.map((item: any) => ({
-        name: item.track.name,
-        artist: item.track.artists.map((a: any) => a.name).join(', '),
-        album: item.track.album.name,
-        albumArt: item.track.album.images[0]?.url || '',
-        url: item.track.external_urls.spotify,
-        isPlaying: false,
-      })) || [],
+      recentTracks,
     };
 
     return new Response(JSON.stringify(stats), {
       status: 200,
       headers: { 
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=300', // Cache for 5 minutes
+        'Cache-Control': 'public, max-age=600', // Cache for 10 minutes to reduce API calls
       },
     });
   } catch (error) {

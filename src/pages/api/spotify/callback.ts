@@ -6,32 +6,212 @@ import type { APIRoute } from 'astro';
  * This endpoint receives the authorization code from Spotify
  * and exchanges it for an access token and refresh token
  */
-export const GET: APIRoute = async ({ url, request }) => {
+export const GET: APIRoute = async (context) => {
+  // Try accessing URL from context
+  const url = context.url;
+  const request = context.request;
+  
+  // Debug: Check what we're getting
+  console.log('Callback Debug:');
+  console.log('  context.url:', url);
+  console.log('  context.url.href:', url.href);
+  console.log('  context.url.search:', url.search);
+  console.log('  context.url.searchParams.size:', url.searchParams.size);
+  console.log('  request.url:', request.url);
+  
+  // Parse query parameters
   const code = url.searchParams.get('code');
   const error = url.searchParams.get('error');
-
-  if (error) {
-    return new Response(
-      `Spotify authorization error: ${error}. Please try again.`,
-      { status: 400 }
-    );
+  const errorDescription = url.searchParams.get('error_description');
+  
+  // Get all URL params for debugging
+  const allParams: Record<string, string> = {};
+  for (const [key, value] of url.searchParams.entries()) {
+    allParams[key] = value;
   }
-
-  if (!code) {
-    return new Response(
-      'No authorization code received. Please try the authorization flow again.',
-      { status: 400 }
-    );
-  }
-
-  const clientId = import.meta.env.SPOTIFY_CLIENT_ID;
-  const clientSecret = import.meta.env.SPOTIFY_CLIENT_SECRET;
+  
+  console.log('  Parsed code:', code);
+  console.log('  allParams:', allParams);
+  
+  const codeToUse = code;
   
   // Spotify requires explicit IP addresses for localhost, not "localhost"
   let redirectUri = url.origin + '/api/spotify/callback';
   if (redirectUri.includes('localhost')) {
     redirectUri = redirectUri.replace('localhost', '127.0.0.1');
   }
+
+  if (error) {
+    return new Response(
+      `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Spotify Authorization Error</title>
+          <style>
+            body {
+              font-family: system-ui, -apple-system, sans-serif;
+              max-width: 600px;
+              margin: 50px auto;
+              padding: 20px;
+              background: #1a1a1a;
+              color: #fff;
+            }
+            .error {
+              background: #ff6b6b;
+              padding: 20px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+            }
+            .info {
+              background: #2a2a2a;
+              padding: 15px;
+              border-radius: 8px;
+              margin-top: 20px;
+            }
+            code {
+              background: #1a1a1a;
+              padding: 2px 6px;
+              border-radius: 4px;
+              font-family: monospace;
+            }
+            pre {
+              background: #1a1a1a;
+              padding: 10px;
+              border-radius: 4px;
+              overflow-x: auto;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="error">
+            <h1>❌ Spotify Authorization Error</h1>
+            <p><strong>Error:</strong> ${error}</p>
+            ${errorDescription ? `<p><strong>Description:</strong> ${errorDescription}</p>` : ''}
+          </div>
+          <div class="info">
+            <h3>Common Issues:</h3>
+            <ul>
+              <li><strong>Redirect URI mismatch:</strong> Make sure your Spotify dashboard has exactly: <code>${redirectUri}</code></li>
+              <li><strong>User cancelled:</strong> If you clicked "Cancel" on Spotify, try again</li>
+            </ul>
+            <p><a href="/api/spotify/auth" style="color: #1db954;">Try again</a></p>
+          </div>
+        </body>
+      </html>
+      `,
+      { status: 400, headers: { 'Content-Type': 'text/html' } }
+    );
+  }
+
+  if (!codeToUse) {
+    return new Response(
+      `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Spotify Authorization - No Code</title>
+          <style>
+            body {
+              font-family: system-ui, -apple-system, sans-serif;
+              max-width: 600px;
+              margin: 50px auto;
+              padding: 20px;
+              background: #1a1a1a;
+              color: #fff;
+            }
+            .warning {
+              background: #ffa94d;
+              padding: 20px;
+              border-radius: 8px;
+              margin-bottom: 20px;
+            }
+            .info {
+              background: #2a2a2a;
+              padding: 15px;
+              border-radius: 8px;
+              margin-top: 20px;
+            }
+            code {
+              background: #1a1a1a;
+              padding: 2px 6px;
+              border-radius: 4px;
+              font-family: monospace;
+            }
+            pre {
+              background: #1a1a1a;
+              padding: 10px;
+              border-radius: 4px;
+              overflow-x: auto;
+              font-size: 12px;
+            }
+            .button {
+              display: inline-block;
+              background: #1db954;
+              color: white;
+              padding: 12px 24px;
+              border-radius: 8px;
+              text-decoration: none;
+              font-weight: bold;
+              margin: 10px 5px;
+              transition: background 0.2s;
+            }
+            .button:hover {
+              background: #1ed760;
+            }
+            ul {
+              margin-left: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="warning">
+            <h1>⚠️ No Authorization Code Received</h1>
+            <p>Spotify redirected here but didn't include an authorization code. This can happen if:</p>
+            <ul style="margin-top: 10px;">
+              <li>You accessed this URL directly (you need to start from the auth endpoint)</li>
+              <li>You didn't click "Agree" on the Spotify authorization page</li>
+              <li>The redirect URI in your Spotify dashboard doesn't match exactly</li>
+            </ul>
+          </div>
+          
+          <div class="info">
+            <h3>Debug Info:</h3>
+            <p><strong>Request URL:</strong> <code>${request.url || url.href}</code></p>
+            <p><strong>Expected Redirect URI:</strong> <code>${redirectUri}</code></p>
+            <p><strong>All URL Parameters:</strong></p>
+            <pre>${JSON.stringify(allParams, null, 2)}</pre>
+            ${Object.keys(allParams).length === 0 ? '<p style="color: #ffa94d; margin-top: 10px;"><strong>⚠️ No parameters at all!</strong> This usually means you accessed the callback URL directly, or Spotify redirected without parameters.</p>' : ''}
+          </div>
+          
+          <div class="info">
+            <h3>How to Fix:</h3>
+            <ol>
+              <li><strong>Start the OAuth flow properly:</strong> 
+                <br>Don't access the callback URL directly. Instead, click this button:
+                <br><a href="/api/spotify/auth" class="button" style="display: inline-block; margin-top: 10px; background: #1db954; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">🚀 Start Authorization</a>
+              </li>
+              <li><strong>On the Spotify page:</strong> Make sure you click "Agree" or "Authorize" (don't click Cancel)</li>
+              <li><strong>Verify your Spotify Dashboard:</strong>
+                <ul style="margin-top: 10px;">
+                  <li>Go to <a href="https://developer.spotify.com/dashboard" target="_blank" style="color: #1db954;">Spotify Developer Dashboard</a></li>
+                  <li>Click on your app</li>
+                  <li>In "Redirect URIs", make sure you have EXACTLY:</li>
+                  <pre style="margin: 10px 0;">${redirectUri}</pre>
+                  <li>Click "Save" if you made any changes</li>
+                </ul>
+              </li>
+            </ol>
+          </div>
+        </body>
+      </html>
+      `,
+      { status: 400, headers: { 'Content-Type': 'text/html' } }
+    );
+  }
+
+  const clientId = import.meta.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = import.meta.env.SPOTIFY_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
     return new Response(
@@ -50,7 +230,7 @@ export const GET: APIRoute = async ({ url, request }) => {
       },
       body: new URLSearchParams({
         grant_type: 'authorization_code',
-        code: code,
+        code: codeToUse,
         redirect_uri: redirectUri,
       }),
     });

@@ -67,19 +67,23 @@ export const GET: APIRoute = async () => {
     }
 
     const track = {
+      id: data.item.id, // Track ID to detect song changes
       name: data.item.name,
       artist: data.item.artists.map((a: any) => a.name).join(', '),
       album: data.item.album.name,
       albumArt: data.item.album.images[0]?.url || '',
       url: data.item.external_urls.spotify,
       isPlaying: data.is_playing,
+      progressMs: data.progress_ms || 0,
+      durationMs: data.item.duration_ms || 0,
+      releaseDate: data.item.album.release_date || '',
     };
 
     return new Response(JSON.stringify(track), {
       status: 200,
       headers: { 
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache',
+        'Cache-Control': 'public, max-age=5', // Cache for 5 seconds to balance freshness and API calls
       },
     });
   } catch (error) {

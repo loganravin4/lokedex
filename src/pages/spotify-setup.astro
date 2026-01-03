@@ -1,0 +1,135 @@
+---
+// Helper page for Spotify OAuth setup
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Setup - Lokédex</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #fff;
+      line-height: 1.6;
+    }
+    .container {
+      background: #2a2a2a;
+      padding: 30px;
+      border-radius: 12px;
+      border: 2px solid #1db954;
+    }
+    h1 {
+      color: #1db954;
+      margin-top: 0;
+    }
+    .step {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border-left: 4px solid #1db954;
+    }
+    .step h2 {
+      margin-top: 0;
+      color: #1db954;
+    }
+    code {
+      background: #0a0a0a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+    }
+    pre {
+      background: #0a0a0a;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    .button {
+      display: inline-block;
+      background: #1db954;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      margin: 10px 5px;
+      transition: background 0.2s;
+    }
+    .button:hover {
+      background: #1ed760;
+    }
+    .warning {
+      background: #ff6b6b;
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .info {
+      background: #4dabf7;
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎵 Spotify OAuth Setup</h1>
+    
+    <div class="warning">
+      <strong>⚠️ Important:</strong> Make sure your dev server is running before starting the OAuth flow!
+      <br>Run <code>npm run dev</code> in your terminal first.
+    </div>
+
+    <div class="step">
+      <h2>Step 1: Add Credentials to .env</h2>
+      <p>Make sure you have these in your <code>.env</code> file:</p>
+      <pre>SPOTIFY_CLIENT_ID=your_client_id_here
+SPOTIFY_CLIENT_SECRET=your_client_secret_here</pre>
+    </div>
+
+    <div class="step">
+      <h2>Step 2: Configure Spotify Dashboard</h2>
+      <p>In your <a href="https://developer.spotify.com/dashboard" target="_blank" style="color: #1db954;">Spotify Developer Dashboard</a>, make sure your redirect URI is:</p>
+      <pre>http://127.0.0.1:4321/api/spotify/callback</pre>
+      <p><strong>Note:</strong> Use <code>127.0.0.1</code>, NOT <code>localhost</code> (Spotify requirement)</p>
+    </div>
+
+    <div class="step">
+      <h2>Step 3: Start OAuth Flow</h2>
+      <p>Click the button below to start the authorization process:</p>
+      <a href="/api/spotify/auth" class="button">🚀 Authorize Spotify</a>
+      <div class="info" style="margin-top: 15px;">
+        <strong>💡 Tip:</strong> Make sure you're accessing this page via <code>http://127.0.0.1:4321</code> (not localhost) 
+        and that your dev server is running!
+      </div>
+    </div>
+
+    <div class="step">
+      <h2>Step 4: After Authorization</h2>
+      <p>After you authorize, you'll be redirected back and see your refresh token. Add it to your <code>.env</code>:</p>
+      <pre>SPOTIFY_REFRESH_TOKEN=your_refresh_token_here</pre>
+      <p>Then restart your dev server and the Spotify widget will work!</p>
+    </div>
+
+    <div class="step">
+      <h2>Troubleshooting</h2>
+      <ul>
+        <li><strong>Connection Refused:</strong> Make sure your dev server is running (<code>npm run dev</code>)</li>
+        <li><strong>Invalid Redirect URI:</strong> Check that your Spotify dashboard has <code>http://127.0.0.1:4321/api/spotify/callback</code></li>
+        <li><strong>Access via 127.0.0.1:</strong> Use <code>http://127.0.0.1:4321</code> not <code>localhost</code></li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
+
