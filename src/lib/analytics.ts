@@ -65,7 +65,15 @@ export function initPostHog(apiKey: string, apiHost: string = 'https://us.i.post
       (e.__SV = 1));
   })(document, (window as any).posthog || []);
 
-  (window as any).posthog.init(apiKey, { api_host: apiHost });
+  (window as any).posthog.init(apiKey, {
+    api_host: apiHost,
+    // We send $pageview via LayoutPageView; avoid duplicate autocapture pageviews
+    capture_pageview: false,
+    // Session recording (and click maps) — default is on; set explicitly for clarity
+    disable_session_recording: false,
+    // Better retention/lifecycle: always create person profiles for anonymous users
+    person_profiles: 'always',
+  });
 }
 
 /**

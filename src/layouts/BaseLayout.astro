@@ -3,6 +3,8 @@ import '../styles/global.css';
 import Navigation from '../components/layout/Navigation.astro';
 import PostHogInit from '../components/analytics/PostHogInit';
 import AnalyticsClickHandler from '../components/analytics/AnalyticsClickHandler';
+import LayoutPageView from '../components/analytics/LayoutPageView';
+import ClarityInit from '../components/analytics/ClarityInit';
 
 interface Props {
   title: string;
@@ -33,7 +35,9 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || 'https://us.i.posthog
   </head>
   <body class="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen">
     {posthogKey && <PostHogInit apiKey={posthogKey} apiHost={posthogHost} client:load />}
+    {posthogKey && <LayoutPageView client:load />}
     {posthogKey && <AnalyticsClickHandler client:load />}
+    <ClarityInit client:load />
     <Navigation />
     <div class="pt-20"> <!-- Add padding to account for fixed nav -->
       <slot />

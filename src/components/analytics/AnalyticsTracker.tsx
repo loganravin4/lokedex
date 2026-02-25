@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { trackPageView, trackScrollDepth, trackSectionView, trackTimeOnPage } from '../../lib/analytics';
+import { trackScrollDepth, trackSectionView, trackTimeOnPage } from '../../lib/analytics';
 
 interface AnalyticsTrackerProps {
   pageName: string;
@@ -7,10 +7,7 @@ interface AnalyticsTrackerProps {
 
 export default function AnalyticsTracker({ pageName }: AnalyticsTrackerProps) {
   useEffect(() => {
-    // Track page view
-    trackPageView(pageName);
-
-    // Track scroll depth
+    // Page view is sent by LayoutPageView in BaseLayout so Lifecycle has data on all pages
     let maxScroll = 0;
     const scrollHandler = () => {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
