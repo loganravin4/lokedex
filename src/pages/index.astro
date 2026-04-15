@@ -93,8 +93,15 @@ const techStack = [
             client:load
           />
         </p>
-        <p class="text-lg text-white/70 mb-8 font-mono">
+        <p class="text-lg text-white/70 mb-4 font-mono">
           Honors Computer Engineering & Computer Science @ Northeastern University
+        </p>
+        <p class="text-sm md:text-base text-white/75 mb-8 max-w-2xl mx-auto font-mono leading-relaxed px-2">
+          Exploring New Grad software engineering (or related) opportunities for when I graduate in {' '}
+          <span data-graduation-countdown class="font-semibold text-poke-yellow">…</span>
+          {' '}(<span data-graduation-days class="font-semibold text-poke-yellow">--</span>
+          {' '}days).
+          <a href="#new-grad" class="text-poke-blue hover:text-poke-blue/90 underline underline-offset-2 ml-1 whitespace-nowrap">Full timeline</a>
         </p>
         <div class="flex flex-wrap justify-center gap-4 mb-8">
           <a
@@ -168,9 +175,14 @@ const techStack = [
       </h2>
       <div class="space-y-4 text-white/90">
         <p>
-          Hey! I'm Logan, an Honors Computer Engineering and Computer Science student at Northeastern University. 
-          I'm currently working as a Software Engineer at NExT Consulting, 
-          building innovative software solutions for external clients.
+          Hey! I'm Logan, an Honors Computer Engineering and Computer Science student at Northeastern University.
+        </p>
+        <p>
+          I'm an incoming Software Engineer Co-op at MORSE Corp, where I'll be contributing to best-in-class technical solutions for difficult multidisciplinary problems in the U.S. national security ecosystem.
+        </p>
+        <p>
+          I've previously worked as a Software Engineer at NExT Consulting, both as a co-op and part-time.
+          I contributed to building innovative software solutions for external clients, including an AI Chief-of-Staff and a data analytics platform.
         </p>
         <p>
           On campus, I serve as a Software Engineer at Generate Product Development Studio, a Teaching Assistant for Introduction to Databases (CS3200), 
@@ -227,8 +239,71 @@ const techStack = [
         </a>
       </div>
     </section>
+
+    <!-- New Grad Timeline -->
+    <section id="new-grad" class="mb-20 bg-poke-black/35 rounded-2xl p-6 md:p-8 border-2 border-poke-yellow/40" data-section="new-grad">
+      <h2 class="font-pokemon text-2xl text-poke-yellow mb-4">
+        NEW GRAD TIMELINE
+      </h2>
+      <p class="text-white/95 text-lg leading-relaxed">
+        I graduate in
+        <span data-graduation-countdown class="font-bold text-poke-yellow">loading...</span>
+        (<span data-graduation-days class="font-bold text-poke-yellow">--</span> days total).
+        I am actively exploring New Grad software engineering opportunities for when I graduate.
+      </p>
+    </section>
   </main>
 </BaseLayout>
+
+<script>
+  const graduationDate = new Date('2027-05-02T00:00:00-04:00');
+
+  const countdownEls = document.querySelectorAll<HTMLSpanElement>('[data-graduation-countdown]');
+  const daysEls = document.querySelectorAll<HTMLSpanElement>('[data-graduation-days]');
+
+  const toWholeDays = (milliseconds: number) => Math.ceil(milliseconds / (1000 * 60 * 60 * 24));
+
+  const formatCountdown = (milliseconds: number) => {
+    const totalDays = toWholeDays(milliseconds);
+    const totalMonths = Math.floor(totalDays / 30.44);
+    const remainingDays = Math.max(0, Math.round(totalDays - totalMonths * 30.44));
+
+    if (totalMonths <= 0) {
+      return `${totalDays} day${totalDays === 1 ? '' : 's'}`;
+    }
+
+    return `${totalMonths} month${totalMonths === 1 ? '' : 's'} and ${remainingDays} day${remainingDays === 1 ? '' : 's'}`;
+  };
+
+  const updateGraduationCountdown = () => {
+    if (countdownEls.length === 0 || daysEls.length === 0) return;
+
+    const now = new Date();
+    const diff = graduationDate.getTime() - now.getTime();
+
+    if (diff <= 0) {
+      countdownEls.forEach((el) => {
+        el.textContent = 'graduated!';
+      });
+      daysEls.forEach((el) => {
+        el.textContent = '0';
+      });
+      return;
+    }
+
+    const days = String(toWholeDays(diff));
+    const countdown = formatCountdown(diff);
+    countdownEls.forEach((el) => {
+      el.textContent = countdown;
+    });
+    daysEls.forEach((el) => {
+      el.textContent = days;
+    });
+  };
+
+  updateGraduationCountdown();
+  setInterval(updateGraduationCountdown, 60_000);
+</script>
 
 <style>
   .perspective-1000 {
