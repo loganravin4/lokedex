@@ -1,0 +1,62 @@
+---
+const year = new Date().getFullYear();
+
+const socials = [
+  { href: 'https://github.com/loganravin4', label: 'GitHub', track: 'github' },
+  { href: 'https://www.linkedin.com/in/logan-ravinuthala/', label: 'LinkedIn', track: 'linkedin' },
+];
+---
+
+<footer class="mt-20 border-t-[3px] border-ink bg-paper-2">
+  <!-- speaker grille: the device's bottom chrome -->
+  <div class="h-3 w-full bg-ink" aria-hidden="true"></div>
+
+  <div class="mx-auto max-w-7xl px-4 py-10 grid gap-8 md:grid-cols-[1fr_auto] md:items-start">
+    <div>
+      <p class="font-display text-sm tracking-[0.12em] text-ink mb-2">LOKÉDEX</p>
+      <p class="font-data text-sm text-ink-soft max-w-md leading-relaxed">
+        Logan Ravinuthala — Honors Computer Engineering &amp; Computer Science,
+        Northeastern University.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3 md:items-end">
+      <div class="flex flex-wrap gap-2">
+        {socials.map((s) => (
+          <a
+            href={s.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-track-external={s.track}
+            class="font-display text-[0.65rem] tracking-wider px-4 py-2.5 pixel-box pixel-press bg-paper text-ink hover:bg-paper-3"
+          >
+            {s.label.toUpperCase()}
+          </a>
+        ))}
+        <a
+          href="mailto:loganravin4@gmail.com"
+          class="font-display text-[0.65rem] tracking-wider px-4 py-2.5 pixel-box pixel-press bg-dex-red text-paper hover:bg-dex-red-deep"
+        >
+          EMAIL
+        </a>
+      </div>
+
+      <!-- casing screws -->
+      <div class="flex gap-6 mt-2" aria-hidden="true">
+        {[0, 1, 2].map(() => (
+          <span class="relative block w-3 h-3 rounded-full bg-paper-3 border-2 border-ink">
+            <span class="absolute left-1/2 top-1/2 w-2 h-[2px] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-ink"></span>
+          </span>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div class="border-t-[3px] border-ink">
+    <div class="mx-auto max-w-7xl px-4 py-3">
+      <p class="font-data text-xs text-ink-soft">
+        © {year} Logan Ravinuthala · Built with Astro
+      </p>
+    </div>
+  </div>
+</footer>

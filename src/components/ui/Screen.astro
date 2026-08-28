@@ -1,0 +1,15 @@
+---
+/** A dark LCD screen inset into the device body. Scanlines live here and
+ *  nowhere else — never behind body copy. */
+interface Props {
+  class?: string;
+  scan?: boolean;
+}
+const { class: className = '', scan = true } = Astro.props;
+---
+
+<div class={`bg-ink p-2 ${className}`}>
+  <div class:list={['relative h-full w-full bg-screen-0 overflow-hidden', scan && 'crt']}>
+    <slot />
+  </div>
+</div>

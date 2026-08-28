@@ -1,11 +1,21 @@
-import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import TypeChip from '../ui/TypeChip';
+import { categoryHex } from '../../lib/pokeTypes';
+
+/**
+ * Pointer-tracked tilt + controlled flip adapted from 21st.dev "Tilt Flip Card"
+ * (@dudadecesaro). Reworked here for: our token system, fluid sizing,
+ * prefers-reduced-motion, a scan-line hover tell, and a11y fixes — the original
+ * puts role="button" on a container that holds links, and leaves the hidden
+ * face's links in the tab order.
+ */
 
 interface Project {
   id: string;
   name: string;
   description: string;
-  shortDescription: string;
+  shortDescription?: string;
   types: string[];
   techs: string[];
   link?: string;
@@ -17,142 +27,236 @@ interface PokedexCardProps {
   index: number;
 }
 
-export default function PokedexCard({ project, index }: PokedexCardProps) {
-  const [isFlipped, setIsFlipped] = useState(false);
+const mapRange = (v: number, a1: number, a2: number, b1: number, b2: number) =>
+  b1 + ((v - a1) * (b2 - b1)) / (a2 - a1);
 
-  const typeColors: Record<string, string> = {
-    frontend: 'from-poke-fire to-poke-electric',
-    backend: 'from-poke-water to-poke-ice',
-    fullstack: 'from-poke-psychic to-poke-fairy',
-    ml: 'from-poke-dragon to-poke-ghost',
-    embedded: 'from-poke-steel to-poke-rock',
+export default function PokedexCard({ project, index }: PokedexCardProps) {
+  const reduce = useReducedMotion();
+  const [flipped, setFlipped] = useState(false);
+
+  const cardRef = useRef<HTMLDivElement>(null);
+  const frontRef = useRef<HTMLDivElement>(null);
+  const backRef = useRef<HTMLDivElement>(null);
+  const pointer = useRef<{ x: number; y: number } | null>(null);
+  const inside = useRef(false);
+
+  const accent = categoryHex(project.types[0]);
+  const entryNo = String(index + 1).padStart(3, '0');
+
+  const resetTilt = useCallback(() => {
+    if (frontRef.current) frontRef.current.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    if (backRef.current) backRef.current.style.transform = 'rotateY(180deg)';
+  }, []);
+
+  const applyTilt = useCallback(
+    (clientX: number, clientY: number, isFlipped: boolean) => {
+      if (reduce) return;
+      const card = cardRef.current;
+      const face = isFlipped ? backRef.current : frontRef.current;
+      if (!card || !face) return;
+
+      const r = card.getBoundingClientRect();
+      const ry = mapRange(clientX - r.left, 0, r.width, -9, 9);
+      const rx = mapRange(clientY - r.top, 0, r.height, 9, -9);
+
+      face.style.transform = isFlipped
+        ? `rotateY(180deg) rotateX(${rx}deg) rotateY(${ry}deg)`
+        : `rotateX(${rx}deg) rotateY(${ry}deg)`;
+    },
+    [reduce]
+  );
+
+  // re-seat the tilt on the newly-active face after a flip
+  useEffect(() => {
+    if (!inside.current || !pointer.current) {
+      resetTilt();
+      return;
+    }
+    const { x, y } = pointer.current;
+    const id = requestAnimationFrame(() => applyTilt(x, y, flipped));
+    return () => cancelAnimationFrame(id);
+  }, [flipped, applyTilt, resetTilt]);
+
+  const track = (x: number, y: number) => {
+    pointer.current = { x, y };
+    inside.current = true;
   };
 
-  const gradientClass = typeColors[project.types[0]?.toLowerCase()] || 'from-poke-normal to-slate-700';
+  // Faces are hidden from the tab order while turned away, so keyboard users
+  // never land on an invisible link. Delay lands at the midpoint of the flip.
+  const faceVisibility = (isActive: boolean) => ({
+    visibility: (isActive ? 'visible' : 'hidden') as 'visible' | 'hidden',
+    transition: 'visibility 0s linear 170ms',
+  });
+
+  const faceBase =
+    'absolute inset-0 flex flex-col bg-paper border-[3px] border-ink [backface-visibility:hidden] transition-transform duration-[250ms] ease-out';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className="perspective-1000"
-    >
-      <motion.div
-        className="relative w-full h-96 cursor-pointer"
-        onClick={() => setIsFlipped(!isFlipped)}
-        whileHover={{ scale: 1.02 }}
-        style={{ transformStyle: 'preserve-3d' }}
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.6 }}
+    <div className="reveal-band">
+      <div
+        ref={cardRef}
+        className="group relative h-[23rem] sm:h-[22rem] [perspective:1200px]"
+        onMouseEnter={(e) => {
+          track(e.clientX, e.clientY);
+          applyTilt(e.clientX, e.clientY, flipped);
+        }}
+        onMouseMove={(e) => {
+          track(e.clientX, e.clientY);
+          applyTilt(e.clientX, e.clientY, flipped);
+        }}
+        onMouseLeave={() => {
+          inside.current = false;
+          pointer.current = null;
+          resetTilt();
+        }}
       >
-        {/* Front of card */}
-        <div
-          className={`absolute inset-0 bg-gradient-to-br ${gradientClass} rounded-2xl p-6 shadow-2xl border-4 border-poke-yellow`}
-          style={{ backfaceVisibility: 'hidden' }}
+        <motion.div
+          className="relative h-full w-full [transform-style:preserve-3d]"
+          animate={{ rotateY: flipped ? 180 : 0 }}
+          transition={reduce ? { duration: 0 } : { duration: 0.34, ease: [0.3, 0, 0, 1] }}
         >
-          <div className="flex flex-col h-full">
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-poke-yellow font-pokemon text-xs">
-                #{String(index + 1).padStart(3, '0')}
-              </span>
-              <div className="flex gap-2">
-                {project.types.map((type) => (
+          {/* ---------- FRONT ---------- */}
+          <div ref={frontRef} className={faceBase} style={faceVisibility(!flipped)}>
+            {/* scan tell: sweeps on hover, before you commit to the flip */}
+            {!reduce && (
+              <div
+                className="pointer-events-none absolute inset-0 z-10 overflow-hidden opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                aria-hidden="true"
+              >
+                <div
+                  className="absolute inset-x-0 h-16 animate-scan-sweep"
+                  style={{
+                    background: `linear-gradient(to bottom, transparent, ${accent}38, transparent)`,
+                  }}
+                />
+              </div>
+            )}
+
+            <div className="border-b-[3px] border-ink">
+              <div className="h-2" style={{ background: accent }} aria-hidden="true" />
+              <div className="flex items-center gap-2 px-3 py-2 bg-ink">
+                <span className="font-data text-xs font-semibold text-paper tabular-nums">
+                  No. {entryNo}
+                </span>
+                <span className="ml-auto flex flex-wrap gap-1.5 justify-end">
+                  {project.types.map((t) => (
+                    <TypeChip key={t} type={t} compact />
+                  ))}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col flex-1 p-4 min-h-0">
+              <h3 className="font-display text-sm sm:text-base text-ink leading-[1.35] mb-3">
+                {project.name}
+              </h3>
+
+              <p className="text-sm text-ink-soft leading-relaxed mb-4 overflow-hidden">
+                {project.shortDescription ?? project.description}
+              </p>
+
+              <div className="mt-auto">
+                <p className="font-display text-[0.5rem] tracking-[0.2em] text-ink-soft mb-2">
+                  TECH
+                </p>
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {project.techs.slice(0, 4).map((tech) => (
+                    <span
+                      key={tech}
+                      className="font-data text-[0.7rem] px-2 py-1 bg-paper-2 border-2 border-ink text-ink"
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                  {project.techs.length > 4 && (
+                    <span className="font-data text-[0.7rem] px-2 py-1 bg-paper-2 border-2 border-ink text-ink">
+                      +{project.techs.length - 4}
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setFlipped(true)}
+                  aria-expanded={flipped}
+                  className="w-full flex items-center justify-center gap-2 font-display text-[0.6rem] tracking-wider px-4 py-3 bg-ink text-paper hover:bg-dex-red cursor-pointer"
+                >
+                  INSPECT ENTRY
+                  <span aria-hidden="true">&#9656;</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ---------- BACK ---------- */}
+          <div
+            ref={backRef}
+            className={`${faceBase} [transform:rotateY(180deg)]`}
+            style={{ ...faceVisibility(flipped), transform: 'rotateY(180deg)' }}
+          >
+            <div className="border-b-[3px] border-ink">
+              <div className="h-2" style={{ background: accent }} aria-hidden="true" />
+              <div className="flex items-center gap-2 px-3 py-2 bg-ink">
+                <span className="font-data text-xs font-semibold text-paper tabular-nums">
+                  No. {entryNo}
+                </span>
+                <span className="ml-auto font-display text-[0.55rem] tracking-[0.18em] text-paper">
+                  TECH STACK
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col flex-1 p-4 min-h-0">
+              <div className="flex flex-wrap gap-1.5 mb-4 overflow-y-auto">
+                {project.techs.map((tech) => (
                   <span
-                    key={type}
-                    className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase"
+                    key={tech}
+                    className="font-data text-[0.7rem] px-2 py-1 bg-paper-2 border-2 border-ink text-ink"
                   >
-                    {type}
+                    {tech}
                   </span>
                 ))}
               </div>
-            </div>
-            
-            <h3 className="text-2xl font-pokemon text-white mb-4 uppercase">
-              {project.name}
-            </h3>
-            
-            <p className="text-sm text-white/90 mb-4 flex-grow">
-              {project.shortDescription}
-            </p>
-            
-            <div className="flex flex-wrap gap-2 mb-4">
-              {project.techs.slice(0, 4).map((tech) => (
-                <span
-                  key={tech}
-                  className="px-2 py-1 bg-black/30 rounded text-xs text-white/80"
-                >
-                  {tech}
-                </span>
-              ))}
-              {project.techs.length > 4 && (
-                <span className="px-2 py-1 bg-black/30 rounded text-xs text-white/80">
-                  +{project.techs.length - 4} more
-                </span>
-              )}
-            </div>
-            
-            <div className="text-center text-xs text-white/60 font-pokemon">
-              Click to flip →
-            </div>
-          </div>
-        </div>
 
-        {/* Back of card */}
-        <div
-          className={`absolute inset-0 bg-gradient-to-br ${gradientClass} rounded-2xl p-6 shadow-2xl border-4 border-poke-yellow`}
-          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-        >
-          <div className="flex flex-col h-full">
-            <h4 className="text-xl font-pokemon text-poke-yellow mb-4 uppercase">
-              Tech Stack
-            </h4>
-            
-            <div className="flex flex-wrap gap-2 mb-6">
-              {project.techs.map((tech) => (
-                <span
-                  key={tech}
-                  className="px-3 py-2 bg-white/20 rounded-lg text-sm text-white font-semibold"
+              <div className="mt-auto flex flex-col gap-2">
+                {project.github && (
+                  <a
+                    href={project.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-track-project={project.name}
+                    data-track-action="github"
+                    className="text-center font-display text-[0.6rem] tracking-wider px-4 py-3 bg-paper-2 border-[3px] border-ink text-ink hover:bg-paper-3"
+                  >
+                    GITHUB
+                  </a>
+                )}
+                {project.link && (
+                  <a
+                    href={project.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-track-project={project.name}
+                    data-track-action="demo"
+                    className="text-center font-display text-[0.6rem] tracking-wider px-4 py-3 bg-dex-red border-[3px] border-ink text-paper hover:bg-dex-red-deep"
+                  >
+                    LIVE DEMO
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setFlipped(false)}
+                  className="w-full flex items-center justify-center gap-2 font-display text-[0.6rem] tracking-wider px-4 py-3 bg-ink text-paper hover:bg-dex-blue cursor-pointer"
                 >
-                  {tech}
-                </span>
-              ))}
-            </div>
-            
-            <div className="flex gap-4 mt-auto">
-              {project.github && (
-                <a
-                  href={project.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 bg-black/40 hover:bg-black/60 transition-colors px-4 py-3 rounded-lg text-center font-bold text-white text-sm"
-                  onClick={(e) => e.stopPropagation()}
-                  data-track-project={project.name}
-                  data-track-action="github"
-                >
-                  GitHub →
-                </a>
-              )}
-              {project.link && (
-                <a
-                  href={project.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 bg-poke-yellow hover:bg-poke-yellow/80 transition-colors px-4 py-3 rounded-lg text-center font-bold text-poke-black text-sm"
-                  onClick={(e) => e.stopPropagation()}
-                  data-track-project={project.name}
-                  data-track-action="demo"
-                >
-                  Live Demo →
-                </a>
-              )}
-            </div>
-            
-            <div className="text-center text-xs text-white/60 font-pokemon mt-4">
-              ← Click to flip back
+                  <span aria-hidden="true">&#9662;</span>
+                  CLOSE ENTRY
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </motion.div>
-    </motion.div>
+        </motion.div>
+      </div>
+    </div>
   );
 }

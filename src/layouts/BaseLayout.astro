@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import Navigation from '../components/layout/Navigation.astro';
+import Footer from '../components/layout/Footer.astro';
 import PostHogInit from '../components/analytics/PostHogInit';
 import AnalyticsClickHandler from '../components/analytics/AnalyticsClickHandler';
 import LayoutPageView from '../components/analytics/LayoutPageView';
@@ -21,40 +23,78 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || 'https://us.i.posthog
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <meta name="theme-color" content="#C6272B" />
+
+    <!-- Type: Silkscreen (chrome) / IBM Plex Sans (body) / IBM Plex Mono (data) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <ClientRouter />
     <title>{title}</title>
   </head>
-  <body class="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen">
+  <body class="min-h-screen flex flex-col">
     {posthogKey && <PostHogInit apiKey={posthogKey} apiHost={posthogHost} client:load />}
     {posthogKey && <LayoutPageView client:load />}
     {posthogKey && <AnalyticsClickHandler client:load />}
     <ClarityInit client:load />
+
+    <a href="#main" class="skip-link">Skip to content</a>
+
     <Navigation />
-    <div class="pt-20"> <!-- Add padding to account for fixed nav -->
+
+    <div id="main" class="flex-1 pt-[4.5rem] md:pt-[5rem]">
       <slot />
     </div>
+
+    <Footer />
+
   </body>
+
 </html>
 
 <style is:global>
-  * {
-    box-sizing: border-box;
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    background: var(--color-ink);
+    color: var(--color-paper);
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    padding: 0.75rem 1rem;
   }
-  
-  html {
-    scroll-behavior: smooth;
+  .skip-link:focus {
+    left: 0.5rem;
+    top: 0.5rem;
   }
-  
-  body {
-    font-family: 'JetBrains Mono', monospace;
+
+  /* Battle transition: the new screen wipes in as six hard chunks. */
+  @keyframes dex-wipe {
+    from { clip-path: inset(0 100% 0 0); }
+    to   { clip-path: inset(0 0 0 0); }
+  }
+
+  ::view-transition-old(root) {
+    animation: none;
+  }
+  ::view-transition-new(root) {
+    animation: dex-wipe 380ms steps(6, end) both;
+    mix-blend-mode: normal;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none !important;
+    }
   }
 </style>

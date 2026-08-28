@@ -87,7 +87,7 @@ export default function TypingTitle({
     <span>
       {baseText}
       {displayedText}
-      <span className="text-poke-yellow animate-pulse">|</span>
+      <span className="text-screen-3 animate-caret" aria-hidden="true">█</span>
     </span>
   );
 }
