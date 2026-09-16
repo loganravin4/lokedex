@@ -52,7 +52,7 @@ export default function ExperienceCard({
   return (
     <div className="reveal-band">
       <article className="bg-paper pixel-lift">
-      {/* badge plate */}
+      {/* Badge plate */}
       <div className="flex items-center gap-3 px-4 py-2.5 bg-ink border-b-[3px] border-ink">
         <span className="font-display text-[0.55rem] tracking-[0.18em] text-dex-yellow">
           BADGE {badgeNo}

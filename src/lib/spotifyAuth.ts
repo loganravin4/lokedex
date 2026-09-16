@@ -1,10 +1,7 @@
 /**
- * Shared Spotify access-token handling.
- *
- * Previously now-playing.ts and stats.ts each ran their own refresh_token
- * exchange on every single request, and logged any failure as a generic
- * "Spotify token error", which made a revoked refresh token look identical to
- * a transient network blip.
+ * Spotify Access Token Helper
+ * Shared by the now-playing and stats endpoints. Caches the token until it
+ * expires and reports a revoked refresh token separately from other failures.
  */
 
 export type TokenResult =
@@ -16,12 +13,10 @@ interface CachedToken {
   expiresAt: number;
 }
 
-// Module-level cache. On Vercel this persists for the life of a warm instance,
-// so a page that polls now-playing no longer mints a token every few seconds.
+// Persists for the life of a warm serverless instance
 let cached: CachedToken | null = null;
 
-// A revoked token fails identically forever; log it once per instance rather
-// than once per poll.
+// A revoked token fails the same way forever, so only warn once
 let warnedReauth = false;
 
 const REFRESH_MARGIN_MS = 60_000;
@@ -66,8 +61,7 @@ export async function getSpotifyAccessToken(): Promise<TokenResult> {
       /* non-JSON error body */
     }
 
-    // invalid_grant means the refresh token is dead for good. No amount of
-    // retrying fixes it — it has to be re-minted through the OAuth flow.
+    // invalid_grant is permanent; the token must be re-minted via OAuth
     if (parsed.error === 'invalid_grant') {
       cached = null;
       if (!warnedReauth) {
@@ -98,8 +92,7 @@ export async function getSpotifyAccessToken(): Promise<TokenResult> {
     refresh_token?: string;
   };
 
-  // Spotify normally reuses the refresh token, but it is allowed to rotate it.
-  // If that ever happens the stored one is now stale, so say so loudly.
+  // Spotify may rotate the refresh token, leaving the stored one stale
   if (data.refresh_token && data.refresh_token !== refreshToken) {
     console.warn(
       'Spotify returned a NEW refresh token. Update SPOTIFY_REFRESH_TOKEN or ' +
@@ -117,7 +110,7 @@ export async function getSpotifyAccessToken(): Promise<TokenResult> {
   return { ok: true, accessToken: data.access_token };
 }
 
-/** Endpoints return `null` on any failure so the widget shows its fallback. */
+/** Empty response so the widget shows its fallback instead of erroring. */
 export const emptyJson = () =>
   new Response(JSON.stringify(null), {
     status: 200,

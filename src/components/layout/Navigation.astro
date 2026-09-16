@@ -113,9 +113,8 @@ const isActive = (href: string) =>
     const label = document.getElementById('menu-label');
     if (!toggle || !menu || !label) return;
 
-    // ClientRouter fires astro:page-load on first load too, so this runs twice
-    // on a cold start. Without this guard we bind two click listeners and they
-    // cancel each other out — the menu opens and instantly closes.
+    // ClientRouter fires astro:page-load on first load too. Without this
+    // guard two click listeners bind and cancel each other out.
     if (toggle.dataset.bound === '1') return;
     toggle.dataset.bound = '1';
 
@@ -144,7 +143,7 @@ const isActive = (href: string) =>
 
   initNav();
   document.addEventListener('astro:page-load', initNav);
-  // a nav swapped in by a view transition starts unbound
+  // A nav swapped in by a view transition starts unbound
   document.addEventListener('astro:after-swap', () => {
     document.body.style.overflow = '';
   });

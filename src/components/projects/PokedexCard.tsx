@@ -3,16 +3,8 @@ import TypeChip from '../ui/TypeChip';
 import { categoryHex } from '../../lib/pokeTypes';
 
 /**
- * Pointer-tracked tilt adapted from 21st.dev "Tilt Flip Card" (@dudadecesaro).
- *
- * The rotation itself is a plain CSS transform, NOT a framer-motion animation.
- * Framer drives transforms from requestAnimationFrame; if that loop is starved
- * the container never rotates, and the previous version then hid the front face
- * on a timer while the back was still turned away — both faces ended up hidden
- * and the card went blank on click. A CSS transform cannot desync like that.
- *
- * Focus is managed with `inert` rather than `visibility` for the same reason:
- * worst case the card simply doesn't rotate, instead of disappearing.
+ * Flippable project entry with pointer-tracked tilt.
+ * Tilt adapted from 21st.dev "Tilt Flip Card" (@dudadecesaro).
  */
 
 interface Project {
@@ -34,7 +26,7 @@ interface PokedexCardProps {
 const mapRange = (v: number, a1: number, a2: number, b1: number, b2: number) =>
   b1 + ((v - a1) * (b2 - b1)) / (a2 - a1);
 
-// React 18 has no typed `inert` prop; the bare attribute is what browsers read.
+// React 18 has no typed `inert` prop; browsers read the bare attribute
 const inertIf = (hidden: boolean) => (hidden ? ({ inert: '' } as Record<string, string>) : {});
 
 export default function PokedexCard({ project, index }: PokedexCardProps) {
@@ -69,7 +61,7 @@ export default function PokedexCard({ project, index }: PokedexCardProps) {
       : `rotateX(${rx}deg) rotateY(${ry}deg)`;
   }, []);
 
-  // re-seat the tilt on whichever face is now facing the viewer
+  // Re-seat the tilt on whichever face is now facing the viewer
   useEffect(() => {
     if (!inside.current || !pointer.current) {
       resetTilt();
@@ -80,8 +72,7 @@ export default function PokedexCard({ project, index }: PokedexCardProps) {
     return () => cancelAnimationFrame(id);
   }, [flipped, applyTilt, resetTilt]);
 
-  // The original card flipped on a click anywhere; keep that. The button stays
-  // as the visible affordance and the keyboard-reachable control.
+  // Flip on a click anywhere; the button is the visible, focusable control
   const toggle = () => setFlipped((f) => !f);
   const stop = (e: { stopPropagation: () => void }) => e.stopPropagation();
 

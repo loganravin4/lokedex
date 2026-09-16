@@ -17,8 +17,8 @@ interface ProjectCardProps {
 }
 
 /**
- * Full dex entry — the complete list page shows everything at once, so unlike
- * PokedexCard on the home page there is nothing to flip for.
+ * Full project entry for the complete list.
+ * Shows everything at once, so unlike PokedexCard there is nothing to flip.
  */
 export default function ProjectCard({ project, index }: ProjectCardProps) {
   const accent = categoryHex(project.types[0]);

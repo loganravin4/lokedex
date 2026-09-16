@@ -33,7 +33,7 @@ export default function ProjectFilter({ projects }: ProjectFilterProps) {
 
   return (
     <div>
-      {/* Filter row reads as a game menu: the active option carries a cursor */}
+      {/* Filter row styled as a game menu; the active option carries a cursor */}
       <div role="group" aria-label="Filter projects by type" className="flex flex-wrap gap-2 mb-8">
         <button
           type="button"

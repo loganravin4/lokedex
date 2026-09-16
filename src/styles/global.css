@@ -1,11 +1,7 @@
 @import "tailwindcss";
 
-/* ============================================================
-   LOKEDEX DESIGN SYSTEM
-   The page is the device body (cream plastic). Content regions
-   are either screens (dark LCD) or label plates riveted to it.
-   Type colours are DATA ENCODING ONLY - never chrome.
-   ============================================================ */
+/* Lokédex design tokens. The page is the device body; content regions are
+   either screens or label plates. Type colours encode data, never chrome. */
 
 @theme {
   /* --- device chrome --- */
@@ -18,8 +14,8 @@
   --color-dex-red-deep: #96181C; /* pressed edge */
   --color-dex-blue: #20418C;   /* the lens - links, active state (7.8:1) */
   --color-dex-blue-lit: #4C7FE0; /* lens highlight */
-  /* Pokemon logo yellow. RULE: only ever a FILL with ink text (12.3:1).
-     Never as text on paper - that pair is 1.24:1 and unreadable. */
+  /* Pokémon yellow. Fill only, with ink text (12.3:1); as text on paper
+     it is 1.24:1 and unreadable. */
   --color-dex-yellow: #FFCB05;
   --color-dex-yellow-deep: #D9A800;
 
@@ -64,9 +60,7 @@
   --radius-none: 0px;
 }
 
-/* ============================================================
-   BASE
-   ============================================================ */
+/* Base */
 
 @layer base {
   * { box-sizing: border-box; }
@@ -82,12 +76,12 @@
     font-family: var(--font-body);
     font-size: 1rem;
     line-height: 1.65;
-    /* device plastic grain - texture, not an ambient gradient */
+    /* Device plastic grain */
     background-image: radial-gradient(var(--color-paper-3) 0.5px, transparent 0.5px);
     background-size: 3px 3px;
   }
 
-  /* pixel type never anti-aliases into mush */
+  /* Keep pixel type on its grid */
   .font-display, [class*="font-display"] {
     -webkit-font-smoothing: none;
     font-smooth: never;
@@ -101,7 +95,7 @@
     text-transform: uppercase;
   }
 
-  /* keyboard focus is always visible and always hard-edged */
+  /* Keyboard focus stays visible and hard-edged */
   :focus-visible {
     outline: 3px solid var(--color-dex-blue);
     outline-offset: 2px;
@@ -113,11 +107,8 @@
   }
 }
 
-/* ============================================================
-   HARDWARE UTILITIES
-   Pixel corners come from layered box-shadows, not clip-path,
-   so borders stay crisp and corners read as "notched".
-   ============================================================ */
+/* Hardware utilities. Pixel corners come from layered box-shadows, not
+   clip-path, so borders stay crisp. */
 
 /* 3px pixel border with notched corners */
 @utility pixel-box {
@@ -129,7 +120,7 @@
       3px 0 0 0 var(--color-ink);
 }
 
-/* same, plus a hard offset drop shadow (no blur, ever) */
+/* Same, plus a hard offset drop shadow */
 @utility pixel-lift {
   border-radius: 0;
   box-shadow:
@@ -140,7 +131,7 @@
       6px 6px 0 0 var(--color-ink);
 }
 
-/* tactile press: the key travels into its own shadow */
+/* Tactile press: the key travels into its own shadow */
 @utility pixel-press {
   transition: transform 90ms steps(2, end), box-shadow 90ms steps(2, end);
   &:active {
@@ -153,7 +144,7 @@
   }
 }
 
-/* CRT scanlines - screens only, never behind body copy */
+/* CRT scanlines. Screens only, never behind body copy. */
 @utility crt {
   position: relative;
   isolation: isolate;
@@ -173,20 +164,18 @@
   }
 }
 
-/* halftone dither for panel depth */
+/* Halftone dither for panel depth */
 @utility dither {
   background-image: radial-gradient(var(--color-paper-3) 1px, transparent 1px);
   background-size: 4px 4px;
 }
 
-/* sprites and photos stay sharp inside screens */
+/* Keep sprites and photos sharp inside screens */
 @utility pixelated {
   image-rendering: pixelated;
 }
 
-/* ============================================================
-   MOTION - geometric, stepped, never soft
-   ============================================================ */
+/* Motion: geometric and stepped, never soft */
 
 @keyframes power-on {
   0%   { transform: scaleY(0.004) scaleX(1); opacity: 1; }
@@ -226,11 +215,8 @@
   }
 }
 
-/* ============================================================
-   SCROLL / BOOT REVEALS - CSS only.
-   Content is NEVER hidden behind JS: with no JS, no support, or
-   reduced motion, every one of these resolves to fully visible.
-   ============================================================ */
+/* Reveals. Each one resolves to fully visible without JS or with reduced
+   motion, so content is never hidden behind a script. */
 
 @keyframes boot-line {
   from { opacity: 0; clip-path: inset(0 100% 0 0); }
@@ -243,10 +229,10 @@
   to   { transform: scaleY(1); }
 }
 
-/* Hero boot: each child powers on in sequence. */
+/* Hero boot: children power on in sequence */
 .boot-seq > * {
-  /* `backwards`, not `both`: the from-state applies during the delay, then the
-     clip-path is released so it cannot clip descendants' box-shadow borders. */
+  /* `backwards` releases the clip-path, which would otherwise clip the
+     box-shadow borders of descendants */
   animation: boot-line 320ms steps(5, end) backwards;
 }
 .boot-seq > *:nth-child(1) { animation-delay: 440ms; }
@@ -261,15 +247,8 @@
   animation: lcd-on 420ms cubic-bezier(0, 0.6, 0.3, 1) backwards;
 }
 
-/* Scroll-triggered reveal.
-   This used to be an animation-timeline: view() animation, which is scrubbed by
-   scroll position: it replayed backwards on the way up and repainted clip-path
-   on every scroll frame, which got rough with a dozen cards on the experience
-   page. It is now a one-shot transition on opacity and transform only, both of
-   which stay on the compositor.
-
-   The hidden state is scoped to .js so that with no JavaScript, no
-   IntersectionObserver, or reduced motion, content is simply visible. */
+/* Scroll reveal. One-shot transition on opacity and transform only, so it
+   stays on the compositor. Hidden state is scoped to .js. */
 @media (prefers-reduced-motion: no-preference) {
   .js .reveal-band {
     opacity: 0;
@@ -278,7 +257,7 @@
   .js .reveal-band.is-in {
     opacity: 1;
     transform: none;
-    /* stepped, so it reads as a panel powering on rather than a soft fade */
+    /* Stepped, so it reads as a panel powering on */
     transition: opacity 260ms steps(5, end), transform 260ms steps(5, end);
   }
 }
@@ -294,13 +273,12 @@
   }
 }
 
-/* Card flip: a plain CSS transform so it can never desync from face state
-   the way an rAF-driven animation can. */
+/* Card flip. A plain transform, so it cannot desync from the face state. */
 .card-flip {
   transition: transform 340ms cubic-bezier(0.3, 0, 0, 1);
 }
 
-/* Hardware buttons on the dex entry. */
+/* Hardware buttons on the dex entry */
 .hw-btn {
   transition: transform 80ms steps(2, end), filter 80ms steps(2, end);
 }

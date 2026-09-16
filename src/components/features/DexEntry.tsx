@@ -5,7 +5,7 @@ interface DexEntryProps {
   titles: string[];
 }
 
-/** Trainer-card rows. Values are spelled out — no abbreviations. */
+/** Trainer card rows. Values are spelled out, never abbreviated. */
 const STATS: Array<[string, string]> = [
   ['NAME', 'Logan Ravinuthala'],
   ['SCHOOL', 'Northeastern University'],
@@ -70,7 +70,7 @@ export default function DexEntry({ titles }: DexEntryProps) {
         <div className="flex flex-col gap-4">
           <div className="bg-ink p-2 lcd-on">
             <div className="relative aspect-square w-full bg-screen-0 overflow-hidden">
-              {/* Clear photo sits underneath; the scan layer is what retracts. */}
+              {/* Clear photo underneath; the scan layer retracts off the top */}
               <img
                 src="/headshot.png"
                 alt="Logan Ravinuthala"
@@ -84,11 +84,10 @@ export default function DexEntry({ titles }: DexEntryProps) {
                 }}
               />
 
-              {/* Scan layer: LCD tint + scanlines. Wipes upward off the top. */}
+              {/* Scan layer: LCD tint and scanlines */}
               <div
                 data-scan-layer
-                // opaque green base: mix-blend-luminosity must blend against the LCD
-                // colour, not against the clear photo now sitting underneath
+                // Opaque base so mix-blend-luminosity blends against the LCD
                 className="absolute inset-0 crt bg-screen-0 transition-[clip-path] duration-700 ease-out"
                 style={{ clipPath: scanning ? 'inset(0 0 0 0)' : 'inset(100% 0 0 0)' }}
                 aria-hidden="true"
@@ -110,15 +109,14 @@ export default function DexEntry({ titles }: DexEntryProps) {
                 />
               </div>
 
-              {/* The bar rides the wipe boundary, so the photo develops behind it. */}
+              {/* Bar rides the wipe boundary so the photo develops behind it */}
               <div
                 className="absolute inset-x-0 z-[3] h-[3px] bg-screen-3 pointer-events-none"
                 style={{
                   top: scanning ? '0%' : '100%',
                   opacity: scanning ? 1 : 0,
                   boxShadow: '0 0 12px 2px rgba(155,188,15,0.65)',
-                  // fade out only once the wipe has finished, but fade back in
-                  // immediately when the scan resumes
+                  // Fade out after the wipe lands, but fade back in immediately
                   transition: scanning
                     ? 'top 700ms ease-out, opacity 150ms ease-out'
                     : 'top 700ms ease-out, opacity 220ms ease-out 600ms',
@@ -288,7 +286,7 @@ export default function DexEntry({ titles }: DexEntryProps) {
             </dl>
           </div>
 
-          {/* Actions span the column so the entry closes on a full-width edge. */}
+          {/* Actions span the column width */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <a
               href="#projects"

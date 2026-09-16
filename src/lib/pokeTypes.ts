@@ -1,10 +1,8 @@
 /**
- * Pokémon type colours — the site's ONLY data-encoding palette.
- * These are never used as chrome, backgrounds, or decoration; a type colour
- * appearing on screen always means "this thing is of this type".
- *
- * Label colour is derived, not hand-picked: we compute WCAG relative luminance
- * and pick ink or paper, whichever clears 4.5:1. See labelFor().
+ * Pokémon Type Colours
+ * The site's only data-encoding palette: a type colour always means the thing
+ * is of that type, never decoration. Label colours are derived from luminance
+ * so every chip clears WCAG AA.
  */
 
 export const TYPE_HEX = {
@@ -33,10 +31,7 @@ export type PokeType = keyof typeof TYPE_HEX;
 export const INK = '#14120E';
 export const PAPER = '#EFE7D2';
 
-/**
- * Project categories in Sanity ('frontend', 'backend', …) mapped onto the
- * type system, so a project's colour means the same thing everywhere.
- */
+/** Maps Sanity project categories onto the type system. */
 export const CATEGORY_TYPE: Record<string, PokeType> = {
   frontend: 'fire',
   backend: 'water',
@@ -71,9 +66,8 @@ export function contrast(a: string, b: string): number {
 }
 
 /**
- * Crossover between ink and paper on our palette sits at L≈0.169.
- * Every one of the 18 type colours clears 4.5:1 on the side it lands
- * (worst case: poison 4.56:1, fighting 4.61:1).
+ * Picks ink or paper, whichever clears 4.5:1.
+ * Crossover sits at L≈0.169; worst case across the 18 types is 4.56:1.
  */
 export function labelFor(hex: string): string {
   return luminance(hex) > 0.169 ? INK : PAPER;
@@ -81,8 +75,7 @@ export function labelFor(hex: string): string {
 
 export function typeHex(type: string): string {
   const key = type.toLowerCase();
-  // Sanity stores project categories ('fullstack', 'ml', ...), not Pokemon type
-  // names, so resolve those through CATEGORY_TYPE before giving up.
+  // Sanity stores categories ('fullstack', 'ml'), not Pokémon type names
   return TYPE_HEX[key as PokeType] ?? TYPE_HEX[CATEGORY_TYPE[key]] ?? TYPE_HEX.normal;
 }
 

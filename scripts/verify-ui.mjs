@@ -1,11 +1,8 @@
 /**
- * Real-browser UI checks. Headless Chrome via CDP can't be trusted here:
- * it starves requestAnimationFrame under --virtual-time-budget (so framer-style
- * animations look broken) and Windows clamps --window-size to ~497px (so mobile
- * screenshots silently crop instead of reflowing). Playwright avoids both.
- *
- *   npm run dev          # in one terminal
- *   npm run verify       # in another
+ * Real-browser UI checks.
+ * Uses Playwright rather than headless Chrome, which starves
+ * requestAnimationFrame and clamps small viewports on Windows.
+ * Run `npm run dev` in one terminal and `npm run verify` in another.
  */
 import { chromium } from 'playwright';
 
@@ -71,8 +68,8 @@ for (const width of [1280, 390]) {
     check(`${width}px ${path} borders not clipped`, clipped.length === 0, clipped.slice(0, 2).join('; '));
 
     if (width < 768) {
-      // Touch targets. Exempt: the focus-only skip link, links sitting inside a
-      // sentence (WCAG 2.5.8 carves those out), and off-screen inputs.
+      // Touch targets. Exempt: the focus-only skip link, links inside a
+      // sentence (WCAG 2.5.8), and off-screen inputs.
       const smallTargets = await page.evaluate(() => {
         const bad = [];
         document.querySelectorAll('a, button, input, textarea, select').forEach((el) => {
@@ -92,8 +89,7 @@ for (const width of [1280, 390]) {
       });
       check(`${width}px ${path} touch targets >= 44px`, smallTargets.length === 0, smallTargets.slice(0, 3).join('; '));
 
-      // Inputs under 16px make iOS Safari zoom the page on focus and leave it
-      // zoomed, which is how the old site behaved before a text-sm crept in.
+      // Inputs under 16px make iOS Safari zoom the page on focus
       const smallInputs = await page.evaluate(() =>
         [...document.querySelectorAll('input:not([type=hidden]), textarea, select')]
           .filter((el) => el.getBoundingClientRect().left > -1000)
@@ -148,10 +144,8 @@ await page.locator('button[aria-label="Jump to next section"]').click();
 await page.waitForTimeout(1100);
 check('D-pad steps sections', (await page.evaluate(() => window.scrollY)) !== y0);
 
-// Fast-scroll behaviour on the longest page. The reveal used to be a
-// scroll-scrubbed animation-timeline animation, which replayed backwards on the
-// way up and repainted clip-path every frame.
-// NOTE: html has scroll-behavior:smooth, so programmatic scrolling must pass
+// Fast-scroll behaviour on the longest page.
+// html sets scroll-behavior:smooth, so programmatic scrolling must pass
 // behavior:'instant' or it animates and never actually moves.
 await page.goto(BASE + '/experience', { waitUntil: 'networkidle' });
 await page.waitForTimeout(1200);
@@ -192,10 +186,8 @@ check('reveal is one-shot (nothing re-hides on the way up)',
 
 await page.close();
 
-// Regression guard: islands must hydrate even where IntersectionObserver never
-// fires. Arc's split view and Cursor's embedded browser are such contexts, and
-// client:visible silently never hydrates there — CSS hover still works, so it
-// looks like "clicking does nothing" rather than like broken JS.
+// Islands must hydrate even where IntersectionObserver never fires, such as
+// split or embedded browser views. client:visible does not.
 const blind = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 await blind.addInitScript(() => {
   window.IntersectionObserver = class {

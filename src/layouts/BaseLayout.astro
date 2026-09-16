@@ -37,7 +37,7 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || 'https://us.i.posthog
       rel="stylesheet"
     />
 
-    <!-- Set before first paint so the reveal's hidden state never flashes. -->
+    <!-- Set before first paint so the hidden reveal state never flashes -->
     <script is:inline>
       document.documentElement.classList.add('js');
     </script>
@@ -64,16 +64,9 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || 'https://us.i.posthog
     <script is:inline>
       (() => {
         /**
-         * One-shot reveal.
-         *
-         * Deliberately not IntersectionObserver: on a fast scroll an element can
-         * cross the entire viewport inside one frame, so no threshold is ever
-         * crossed, the callback never fires, and the content stays invisible for
-         * good. Some embedded/split browser views throttle IO outright as well.
-         *
-         * Instead we sweep every frame while a scroll is in flight and stand
-         * down when it settles, so a flick cannot outrun it. Listeners detach
-         * once everything has been revealed.
+         * Reveals elements once, as they scroll into view.
+         * Sweeps per frame during a scroll rather than using
+         * IntersectionObserver, which a fast flick can outrun.
          */
         function armReveals() {
           let pending = Array.prototype.slice.call(

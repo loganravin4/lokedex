@@ -127,9 +127,8 @@ export function initContactForm(): void {
     return;
   }
 
-  // Astro's ClientRouter fires astro:page-load on the initial load as well, so
-  // this can be called twice on a cold start. Binding twice would attach two
-  // submit handlers and send the message twice.
+  // ClientRouter fires astro:page-load on the initial load as well; binding
+  // twice would attach two submit handlers and send the message twice.
   if (form.dataset.bound === '1') return;
   form.dataset.bound = '1';
 
