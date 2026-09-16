@@ -1,46 +1,15 @@
 import type { APIRoute } from 'astro';
+import { getSpotifyAccessToken, emptyJson } from '../../../lib/spotifyAuth';
 
 /**
  * Spotify Now Playing API Endpoint
  */
 export const GET: APIRoute = async () => {
-  const spotifyClientId = import.meta.env.SPOTIFY_CLIENT_ID;
-  const spotifyClientSecret = import.meta.env.SPOTIFY_CLIENT_SECRET;
-  const spotifyRefreshToken = import.meta.env.SPOTIFY_REFRESH_TOKEN;
-
-  if (!spotifyClientId || !spotifyClientSecret || !spotifyRefreshToken) {
-    // Return null instead of error so widget can show fallback
-    return new Response(JSON.stringify(null), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
 
   try {
-    // Get access token
-    const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${btoa(`${spotifyClientId}:${spotifyClientSecret}`)}`,
-      },
-      body: new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: spotifyRefreshToken,
-      }),
-    });
-
-    if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.text();
-      console.error('Spotify token error:', errorData);
-      // Return null instead of error so widget can show fallback
-      return new Response(JSON.stringify(null), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    const { access_token } = await tokenResponse.json();
+    const token = await getSpotifyAccessToken();
+    if (!token.ok) return emptyJson();
+    const access_token = token.accessToken;
 
     // Get currently playing track
     const nowPlayingResponse = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {

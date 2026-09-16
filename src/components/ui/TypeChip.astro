@@ -1,0 +1,38 @@
+---
+import { chip } from '../../lib/pokeTypes';
+
+interface Props {
+  type: string;
+  tech?: string;
+  compact?: boolean;
+}
+
+const { type, tech, compact = false } = Astro.props;
+const { bg, fg, label } = chip(type);
+---
+
+{compact ? (
+  <span
+    class="inline-block font-display text-[0.6rem] tracking-wider px-2.5 py-1.5 border-[3px] border-ink"
+    style={`background:${bg};color:${fg}`}
+  >
+    {label}
+  </span>
+) : (
+  <span class="flex flex-col h-full w-full border-[3px] border-ink" style={`background:${bg}`}>
+    <span
+      class="font-display text-[0.7rem] tracking-wider px-3 pt-2 pb-1.5"
+      style={`color:${fg}`}
+    >
+      {tech ?? label}
+    </span>
+    {tech && (
+      <span
+        class="font-display text-[0.5rem] tracking-[0.18em] px-3 pb-1.5 pt-1 border-t-2 border-ink/25"
+        style={`color:${fg}`}
+      >
+        {label}
+      </span>
+    )}
+  </span>
+)}

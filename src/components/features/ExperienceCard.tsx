@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { urlForImage } from '../../lib/fetchExperiences';
 
@@ -39,140 +38,147 @@ export default function ExperienceCard({
 }: ExperienceCardProps) {
   const [showProjects, setShowProjects] = useState(false);
 
-  // Format dates
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   };
 
-  const dateRange = `${formatDate(startDate)} - ${current ? 'Present' : endDate ? formatDate(endDate) : 'Present'}`;
+  const dateRange = `${formatDate(startDate)} — ${
+    current ? 'Present' : endDate ? formatDate(endDate) : 'Present'
+  }`;
+
+  const badgeNo = String(index + 1).padStart(2, '0');
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className="bg-gradient-to-br from-poke-blue/20 to-poke-psychic/20 rounded-2xl p-6 md:p-8 border-4 border-poke-yellow/30 relative"
-    >
-      {/* Company Logo - Top Right */}
-      {companyLogo && (
-        <div className="absolute top-6 right-6">
-          <img
-            src={urlForImage(companyLogo).width(60).height(60).url()}
-            alt={`${company} logo`}
-            className="w-12 h-12 md:w-14 md:h-14 object-contain bg-white rounded-full p-2"
-          />
-        </div>
-      )}
-
-      {/* Header */}
-      <div className="mb-5 pr-16">
-        <h3 className="text-xl md:text-2xl font-bold text-white mb-1">
-          {title}
-        </h3>
-        {companyWebsite ? (
-          <a
-            href={companyWebsite}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-lg text-poke-yellow hover:text-poke-yellow/80 transition-colors inline-block mb-1"
-          >
-            {company} →
-          </a>
-        ) : (
-          <p className="text-lg text-poke-yellow mb-1">{company}</p>
+    <div className="reveal-band">
+      <article className="bg-paper pixel-lift">
+      {/* Badge plate */}
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-ink border-b-[3px] border-ink">
+        <span className="font-display text-[0.55rem] tracking-[0.18em] text-dex-yellow">
+          BADGE {badgeNo}
+        </span>
+        <span className="font-data text-xs text-paper/85 ml-auto">{dateRange}</span>
+        {current && (
+          <span className="font-display text-[0.5rem] tracking-[0.15em] px-2 py-1 bg-dex-yellow text-ink">
+            CURRENT
+          </span>
         )}
-        <div className="flex flex-col sm:flex-row sm:gap-3 text-sm text-white/70">
-          <p>{location}</p>
-          <p className="hidden sm:block">•</p>
-          <p>{dateRange}</p>
-        </div>
       </div>
 
-      {/* Description bullets */}
-      <div className="mb-5">
-        <ul className="space-y-3">
+      <div className="p-5 md:p-6">
+        <div className="flex items-start gap-4 mb-5">
+          <div className="min-w-0 flex-1">
+            <h3 className="font-display text-sm sm:text-base text-ink leading-[1.35] mb-2">
+              {title}
+            </h3>
+            {companyWebsite ? (
+              <a
+                href={companyWebsite}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-data text-base text-dex-blue underline underline-offset-2 decoration-2 hover:bg-dex-blue hover:text-paper inline-flex items-center min-h-11 py-1"
+              >
+                {company} &#8599;
+              </a>
+            ) : (
+              <p className="font-data text-base text-ink">{company}</p>
+            )}
+            <p className="font-data text-sm text-ink-soft mt-1">{location}</p>
+          </div>
+
+          {companyLogo && (
+            <img
+              src={urlForImage(companyLogo).width(96).height(96).url()}
+              alt={`${company} logo`}
+              className="w-14 h-14 object-contain bg-paper border-[3px] border-ink p-1.5 shrink-0"
+            />
+          )}
+        </div>
+
+        <ul className="flex flex-col gap-2.5 list-none p-0 m-0">
           {description.map((bullet, i) => (
-            <li key={i} className="text-sm text-white/90 flex">
-              <span className="text-poke-yellow mr-2 mt-1">▸</span>
-              <span className="leading-relaxed">{bullet}</span>
+            <li key={i} className="flex gap-2.5 text-sm text-ink leading-relaxed">
+              <span className="text-dex-red shrink-0 mt-0.5" aria-hidden="true">
+                &#9656;
+              </span>
+              <span className="min-w-0">{bullet}</span>
             </li>
           ))}
         </ul>
-      </div>
 
-      {/* Projects - Collapsible */}
-      {projects && projects.length > 0 && (
-        <div className="mt-5 pt-5 border-t-2 border-white/10">
-          <button
-            onClick={() => setShowProjects(!showProjects)}
-            className="flex items-center justify-between w-full text-left group"
-          >
-            <h4 className="text-base font-bold text-poke-yellow group-hover:text-poke-yellow/80 transition-colors">
-              Key Projects ({projects.length})
-            </h4>
-            <span className="text-poke-yellow text-xl">
-              {showProjects ? '−' : '+'}
-            </span>
-          </button>
-          
-          {showProjects && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-4 space-y-3"
+        {projects && projects.length > 0 && (
+          <div className="mt-5 pt-5 border-t-[3px] border-ink">
+            <button
+              type="button"
+              onClick={() => setShowProjects(!showProjects)}
+              aria-expanded={showProjects}
+              className="w-full flex items-center gap-3 px-3 py-2.5 border-[3px] border-ink bg-paper-2 hover:bg-dex-yellow cursor-pointer hw-btn"
             >
-              {projects.map((project, i) => (
-                <div key={i} className="bg-black/20 rounded-lg p-4">
-                  <h5 className="font-bold text-white text-sm mb-2">{project.name}</h5>
-                  <p className="text-white/80 text-xs mb-3 leading-relaxed">{project.description}</p>
-                  
-                  {/* Tech stack */}
-                  {project.techs && project.techs.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      {project.techs.map((tech) => (
-                        <span
-                          key={tech}
-                          className="px-2 py-0.5 bg-white/10 rounded text-xs text-white/80"
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+              <span aria-hidden="true" className="font-data text-sm">
+                {showProjects ? '▾' : '▸'}
+              </span>
+              <span className="font-display text-[0.6rem] tracking-[0.15em] text-ink">
+                KEY PROJECTS
+              </span>
+              <span className="ml-auto font-data text-xs text-ink-soft">{projects.length}</span>
+            </button>
 
-                  {/* Links */}
-                  {(project.github || project.link) && (
-                    <div className="flex gap-2">
-                      {project.github && (
-                        <a
-                          href={project.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs bg-black/40 hover:bg-black/60 transition-colors px-3 py-1.5 rounded text-white"
-                        >
-                          GitHub →
-                        </a>
-                      )}
-                      {project.link && (
-                        <a
-                          href={project.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs bg-poke-yellow hover:bg-poke-yellow/80 transition-colors px-3 py-1.5 rounded text-poke-black font-semibold"
-                        >
-                          Live Demo →
-                        </a>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </motion.div>
-          )}
-        </div>
-      )}
-    </motion.div>
+            {showProjects && (
+              <div className="mt-3 flex flex-col gap-3">
+                {projects.map((project, i) => (
+                  <div key={i} className="bg-paper-2 border-[3px] border-ink p-4">
+                    <h4 className="font-display text-[0.65rem] tracking-wider text-ink mb-2">
+                      {project.name}
+                    </h4>
+                    <p className="text-sm text-ink-soft leading-relaxed mb-3">
+                      {project.description}
+                    </p>
+
+                    {project.techs && project.techs.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {project.techs.map((tech) => (
+                          <span
+                            key={tech}
+                            className="font-data text-[0.7rem] px-2 py-1 bg-paper border-2 border-ink text-ink"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {(project.github || project.link) && (
+                      <div className="flex flex-wrap gap-2">
+                        {project.github && (
+                          <a
+                            href={project.github}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-display text-[0.55rem] tracking-wider px-3 py-2 bg-paper border-2 border-ink text-ink hover:bg-paper-3"
+                          >
+                            GITHUB
+                          </a>
+                        )}
+                        {project.link && (
+                          <a
+                            href={project.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-display text-[0.55rem] tracking-wider px-3 py-2 bg-dex-red border-2 border-ink text-paper hover:bg-dex-red-deep"
+                          >
+                            LIVE DEMO
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      </article>
+    </div>
   );
 }

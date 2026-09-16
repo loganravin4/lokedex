@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Panel from '../components/ui/Panel.astro';
 import ProjectFilter from '../components/projects/ProjectFilter';
 import AnalyticsTracker from '../components/analytics/AnalyticsTracker';
 import { fetchProjects } from '../lib/fetchProjects';
@@ -21,24 +22,21 @@ const transformedProjects = projects.map((project) => ({
 
 <BaseLayout title="Complete Lokédex - Logan's Portfolio">
   <AnalyticsTracker pageName="Projects" client:load />
-  <main class="container mx-auto px-4 py-8 max-w-6xl">
-    <!-- Header -->
-    <section class="text-center mb-12 pt-8">
-      <h1 class="font-pokemon text-4xl md:text-5xl text-poke-yellow mb-4">
-        COMPLETE LOKÉDEX
-      </h1>
-      <p class="text-xl text-white/80 mb-8">
-        All {projects.length} projects I've caught and trained
+
+  <main class="mx-auto max-w-6xl px-4 py-8 md:py-12 flex flex-col gap-10">
+    <Panel title="COMPLETE LOKÉDEX" eyebrow={`${projects.length} ENTRIES`} tone="yellow">
+      <p class="text-sm text-ink-soft mb-5">
+        Every project I've caught and trained. Filter by type below.
       </p>
       <a
         href="/"
-        class="inline-block bg-poke-red hover:bg-poke-red/80 transition-colors px-6 py-3 rounded-lg font-bold text-white"
+        class="inline-flex items-center gap-2 font-display text-[0.65rem] tracking-wider px-5 py-3.5 pixel-box pixel-press bg-paper-2 text-ink hover:bg-paper-3"
       >
-        ← Back to Home
+        <span aria-hidden="true">&#9666;</span>
+        BACK TO HOME
       </a>
-    </section>
+    </Panel>
 
-    <!-- Filter and Projects -->
     <ProjectFilter projects={transformedProjects} client:load />
   </main>
 </BaseLayout>

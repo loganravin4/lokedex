@@ -127,6 +127,11 @@ export function initContactForm(): void {
     return;
   }
 
+  // ClientRouter fires astro:page-load on the initial load as well; binding
+  // twice would attach two submit handlers and send the message twice.
+  if (form.dataset.bound === '1') return;
+  form.dataset.bound = '1';
+
   // Track form started when user first interacts
   let formStarted = false;
   form.addEventListener('focusin', () => {
