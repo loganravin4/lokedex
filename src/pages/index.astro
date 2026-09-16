@@ -200,43 +200,5 @@ const titles = [
       </div>
     </Panel>
 
-    <!-- New grad timeline -->
-    <Panel title="NEW GRAD TIMELINE" eyebrow="STATUS: OPEN" id="new-grad">
-      <div class="bg-ink p-2">
-        <p class="bg-screen-0 px-4 py-4 font-data text-sm md:text-base text-screen-3 leading-relaxed">
-          <span class="text-screen-2" aria-hidden="true">&gt;</span> I graduate in
-          <span data-graduation-countdown class="font-semibold">loading...</span>
-          (<span data-graduation-days class="font-semibold">--</span> days total).
-          I am actively exploring New Grad software engineering opportunities for when I graduate.
-        </p>
-      </div>
-    </Panel>
   </main>
 </BaseLayout>
-
-<script>
-  import { graduationCountdown } from '../lib/graduation';
-
-  // Scoped to the Astro-rendered timeline panel only. The hero renders its own
-  // countdown inside React; reaching into that island from here caused a
-  // hydration mismatch.
-  const update = () => {
-    const root = document.getElementById('new-grad');
-    if (!root) return;
-    const { text, days } = graduationCountdown();
-    root.querySelectorAll<HTMLElement>('[data-graduation-countdown]')
-      .forEach((el) => { el.textContent = text; });
-    root.querySelectorAll<HTMLElement>('[data-graduation-days]')
-      .forEach((el) => { el.textContent = days; });
-  };
-
-  let timer: number | undefined;
-  const start = () => {
-    update();
-    window.clearInterval(timer);
-    timer = window.setInterval(update, 60_000);
-  };
-
-  start();
-  document.addEventListener('astro:page-load', start);
-</script>

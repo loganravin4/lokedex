@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import TypingTitle from './TypingTitle';
-import { graduationCountdown, type Countdown } from '../../lib/graduation';
 
 interface DexEntryProps {
   titles: string[];
@@ -17,24 +16,13 @@ const STATS: Array<[string, string]> = [
 ];
 
 /** Sections the D-pad steps through, in page order. */
-const SECTIONS = ['skills', 'projects', 'about', 'new-grad'];
+const SECTIONS = ['skills', 'projects', 'about'];
 
 const NAV_OFFSET = 96;
 
 export default function DexEntry({ titles }: DexEntryProps) {
   const [jump, setJump] = useState(0);
-
-  // Filled in after mount, never during SSR. The page-level script used to
-  // write these numbers into this island's DOM before React hydrated it, which
-  // tripped a text-content mismatch and made React throw away the whole
-  // server-rendered tree and re-render from scratch.
-  const [countdown, setCountdown] = useState<Countdown | null>(null);
-  useEffect(() => {
-    const tick = () => setCountdown(graduationCountdown());
-    tick();
-    const id = window.setInterval(tick, 60_000);
-    return () => window.clearInterval(id);
-  }, []);
+  const [scanning, setScanning] = useState(true);
 
   const goSection = useCallback((dir: 1 | -1) => {
     const els = SECTIONS.map((id) => document.getElementById(id)).filter(
@@ -81,33 +69,87 @@ export default function DexEntry({ titles }: DexEntryProps) {
         {/* LCD + working hardware controls */}
         <div className="flex flex-col gap-4">
           <div className="bg-ink p-2 lcd-on">
-            <div className="relative aspect-square w-full bg-screen-0 overflow-hidden crt">
+            <div className="relative aspect-square w-full bg-screen-0 overflow-hidden">
+              {/* Clear photo sits underneath; the scan layer is what retracts. */}
               <img
                 src="/headshot.png"
                 alt="Logan Ravinuthala"
                 width={512}
                 height={512}
-                className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity opacity-90"
+                className="absolute inset-0 w-full h-full object-cover"
                 onError={(e) => {
                   const el = e.currentTarget;
                   el.onerror = null;
                   el.src = '/favicon.svg';
                 }}
               />
-              <div className="absolute inset-0 bg-screen-0/40" aria-hidden="true" />
+
+              {/* Scan layer: LCD tint + scanlines. Wipes upward off the top. */}
               <div
-                className="absolute inset-x-0 h-10 z-[2] animate-scan-sweep pointer-events-none motion-reduce:hidden"
+                data-scan-layer
+                // opaque green base: mix-blend-luminosity must blend against the LCD
+                // colour, not against the clear photo now sitting underneath
+                className="absolute inset-0 crt bg-screen-0 transition-[clip-path] duration-700 ease-out"
+                style={{ clipPath: scanning ? 'inset(0 0 0 0)' : 'inset(100% 0 0 0)' }}
+                aria-hidden="true"
+              >
+                <img
+                  src="/headshot.png"
+                  alt=""
+                  width={512}
+                  height={512}
+                  className="absolute inset-0 w-full h-full object-cover mix-blend-luminosity opacity-90"
+                />
+                <div className="absolute inset-0 bg-screen-0/40" />
+                <div
+                  className="absolute inset-x-0 h-10 z-[2] animate-scan-sweep pointer-events-none motion-reduce:hidden"
+                  style={{
+                    background:
+                      'linear-gradient(to bottom, transparent, rgba(155,188,15,0.22), transparent)',
+                  }}
+                />
+              </div>
+
+              {/* The bar rides the wipe boundary, so the photo develops behind it. */}
+              <div
+                className="absolute inset-x-0 z-[3] h-[3px] bg-screen-3 pointer-events-none"
                 style={{
-                  background:
-                    'linear-gradient(to bottom, transparent, rgba(155,188,15,0.22), transparent)',
+                  top: scanning ? '0%' : '100%',
+                  opacity: scanning ? 1 : 0,
+                  boxShadow: '0 0 12px 2px rgba(155,188,15,0.65)',
+                  // fade out only once the wipe has finished, but fade back in
+                  // immediately when the scan resumes
+                  transition: scanning
+                    ? 'top 700ms ease-out, opacity 150ms ease-out'
+                    : 'top 700ms ease-out, opacity 220ms ease-out 600ms',
                 }}
                 aria-hidden="true"
               />
-              <span className="absolute left-2 top-2 z-[4] font-display text-[0.5rem] tracking-[0.2em] text-screen-3">
-                SCANNING
+
+              <span
+                className={`absolute left-2 top-2 z-[4] font-display text-[0.5rem] tracking-[0.2em] ${
+                  scanning ? 'text-screen-3' : 'text-paper drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]'
+                }`}
+              >
+                {scanning ? 'SCANNING' : 'PHOTO'}
               </span>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setScanning((v) => !v)}
+            aria-pressed={!scanning}
+            className="hw-btn w-full flex items-center justify-center gap-2.5 min-h-11 px-4 font-display text-[0.6rem] tracking-wider border-[3px] border-ink bg-paper-2 text-ink hover:bg-dex-yellow cursor-pointer"
+          >
+            <span
+              className={`w-2.5 h-2.5 rounded-full border-2 border-ink shrink-0 ${
+                scanning ? 'bg-lamp-green animate-lamp-blink' : 'bg-paper-3'
+              }`}
+              aria-hidden="true"
+            />
+            {scanning ? 'SHOW PHOTO' : 'RESUME SCAN'}
+          </button>
 
           <div className="flex items-start justify-between gap-3">
             {/* D-pad: up/down step sections, left/right cycle the title */}
@@ -206,7 +248,10 @@ export default function DexEntry({ titles }: DexEntryProps) {
           </h2>
 
           <div className="bg-ink p-2 mb-5">
-            <p className="bg-screen-0 px-3 py-2.5 font-data text-sm sm:text-base text-screen-3 min-h-[2.75rem] flex items-center">
+            <p
+              data-title-lcd
+              className="bg-screen-0 px-3 py-2.5 font-data text-sm sm:text-base text-screen-3 min-h-[2.75rem] flex items-center"
+            >
               <span className="text-screen-2 mr-2 shrink-0" aria-hidden="true">
                 &#9656;
               </span>
@@ -243,37 +288,19 @@ export default function DexEntry({ titles }: DexEntryProps) {
             </dl>
           </div>
 
-          <p className="text-sm text-ink leading-relaxed mb-6">
-            Exploring New Grad software engineering (or related) opportunities for when I graduate
-            in{' '}
-            <span className="font-data font-semibold text-dex-red">
-              {countdown ? countdown.text : '…'}
-            </span>{' '}
-            (
-            <span className="font-data font-semibold text-dex-red">
-              {countdown ? countdown.days : '--'}
-            </span>{' '}
-            days).{' '}
-            <a
-              href="#new-grad"
-              className="text-dex-blue underline underline-offset-2 decoration-2 hover:bg-dex-blue hover:text-paper whitespace-nowrap"
-            >
-              Full timeline
-            </a>
-          </p>
-
-          <div className="flex flex-wrap gap-3">
+          {/* Actions span the column so the entry closes on a full-width edge. */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <a
               href="#projects"
               data-track-cta="View Favorites"
-              className="font-display text-[0.7rem] tracking-wider px-5 py-3.5 pixel-box pixel-press bg-dex-red text-paper hover:bg-dex-red-deep"
+              className="text-center font-display text-[0.7rem] tracking-wider px-5 py-3.5 pixel-box pixel-press bg-dex-red text-paper hover:bg-dex-red-deep"
             >
               VIEW FAVORITES
             </a>
             <a
               href="#about"
               data-track-cta="About Trainer"
-              className="font-display text-[0.7rem] tracking-wider px-5 py-3.5 pixel-box pixel-press bg-dex-yellow text-ink hover:bg-dex-yellow-deep"
+              className="text-center font-display text-[0.7rem] tracking-wider px-5 py-3.5 pixel-box pixel-press bg-dex-yellow text-ink hover:bg-dex-yellow-deep"
             >
               ABOUT TRAINER
             </a>

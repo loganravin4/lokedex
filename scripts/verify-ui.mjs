@@ -122,11 +122,26 @@ const flipped = await page.locator('.card-flip').first()
 check('card flip rotates', flipped.startsWith('matrix3d'), flipped.slice(0, 32));
 check('CLOSE ENTRY reachable', await page.locator('button', { hasText: 'CLOSE ENTRY' }).first().isVisible());
 
-const lcd = page.locator('#main .bg-screen-0').nth(1);
+const lcd = page.locator('[data-title-lcd]').first();
 const before = (await lcd.innerText()).trim();
 await page.locator('button[aria-label="Show next title"]').click();
 await page.waitForTimeout(900);
 check('D-pad cycles title', (await lcd.innerText()).trim() !== before);
+
+// LCD scan/photo toggle
+const scanBtn = page.locator('button', { hasText: 'SHOW PHOTO' });
+check('LCD scan toggle present', await scanBtn.count() === 1);
+if (await scanBtn.count()) {
+  const clipBefore = await page.locator('[data-scan-layer]').first().evaluate((el) => getComputedStyle(el).clipPath);
+  await scanBtn.click();
+  await page.waitForTimeout(1000);
+  const clipAfter = await page.locator('[data-scan-layer]').first().evaluate((el) => getComputedStyle(el).clipPath);
+  check('scan layer wipes away to reveal the photo', clipBefore !== clipAfter, `${clipBefore} -> ${clipAfter}`);
+  check('toggle label flips to RESUME SCAN',
+    await page.locator('button', { hasText: 'RESUME SCAN' }).count() === 1);
+  await page.locator('button', { hasText: 'RESUME SCAN' }).click();
+  await page.waitForTimeout(900);
+}
 
 const y0 = await page.evaluate(() => window.scrollY);
 await page.locator('button[aria-label="Jump to next section"]').click();
