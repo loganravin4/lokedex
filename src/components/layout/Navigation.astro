@@ -19,7 +19,7 @@ const isActive = (href: string) =>
   <div class="mx-auto max-w-7xl px-4 h-[4.5rem] md:h-20 flex items-center gap-4">
 
     <!-- Device chrome: the lens is the only round element on the site -->
-    <a href="/" class="flex items-center gap-3 group shrink-0" aria-label="Lokédex home">
+    <a href="/" class="flex items-center gap-3 group shrink-0 min-h-11" aria-label="Lokédex home">
       <span class="relative block w-9 h-9 md:w-10 md:h-10 shrink-0">
         <span class="absolute inset-0 rounded-full bg-ink"></span>
         <span class="absolute inset-[3px] rounded-full bg-dex-blue"></span>
@@ -61,7 +61,7 @@ const isActive = (href: string) =>
     <!-- Mobile: START button -->
     <button
       id="menu-toggle"
-      class="md:hidden font-display text-[0.65rem] tracking-wider px-3.5 py-2.5 pixel-box pixel-press bg-paper text-ink"
+      class="md:hidden font-display text-[0.65rem] tracking-wider px-4 min-h-11 pixel-box pixel-press bg-paper text-ink"
       aria-expanded="false"
       aria-controls="mobile-menu"
     >

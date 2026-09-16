@@ -33,6 +33,28 @@ export type PokeType = keyof typeof TYPE_HEX;
 export const INK = '#14120E';
 export const PAPER = '#EFE7D2';
 
+/**
+ * Project categories in Sanity ('frontend', 'backend', …) mapped onto the
+ * type system, so a project's colour means the same thing everywhere.
+ */
+export const CATEGORY_TYPE: Record<string, PokeType> = {
+  frontend: 'fire',
+  backend: 'water',
+  fullstack: 'psychic',
+  ml: 'dragon',
+  ai: 'dragon',
+  embedded: 'steel',
+  data: 'electric',
+  mobile: 'flying',
+  devops: 'ground',
+  systems: 'rock',
+};
+
+export function categoryHex(category?: string): string {
+  const t = CATEGORY_TYPE[(category ?? '').toLowerCase()];
+  return t ? TYPE_HEX[t] : TYPE_HEX.normal;
+}
+
 /** WCAG 2.1 relative luminance. */
 export function luminance(hex: string): number {
   const h = hex.replace('#', '');
@@ -58,33 +80,14 @@ export function labelFor(hex: string): string {
 }
 
 export function typeHex(type: string): string {
-  return TYPE_HEX[type.toLowerCase() as PokeType] ?? TYPE_HEX.normal;
+  const key = type.toLowerCase();
+  // Sanity stores project categories ('fullstack', 'ml', ...), not Pokemon type
+  // names, so resolve those through CATEGORY_TYPE before giving up.
+  return TYPE_HEX[key as PokeType] ?? TYPE_HEX[CATEGORY_TYPE[key]] ?? TYPE_HEX.normal;
 }
 
 /** Everything a chip needs, in one call. */
 export function chip(type: string) {
   const bg = typeHex(type);
   return { bg, fg: labelFor(bg), label: type.toUpperCase() };
-}
-
-/**
- * Project categories in Sanity ('frontend', 'backend', …) mapped onto the
- * type system, so a project's colour means the same thing everywhere.
- */
-export const CATEGORY_TYPE: Record<string, PokeType> = {
-  frontend: 'fire',
-  backend: 'water',
-  fullstack: 'psychic',
-  ml: 'dragon',
-  ai: 'dragon',
-  embedded: 'steel',
-  data: 'electric',
-  mobile: 'flying',
-  devops: 'ground',
-  systems: 'rock',
-};
-
-export function categoryHex(category?: string): string {
-  const t = CATEGORY_TYPE[(category ?? '').toLowerCase()];
-  return t ? TYPE_HEX[t] : TYPE_HEX.normal;
 }

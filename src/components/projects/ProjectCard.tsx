@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion';
+import TypeChip from '../ui/TypeChip';
+import { categoryHex } from '../../lib/pokeTypes';
 
 interface Project {
   id: string;
@@ -15,89 +16,82 @@ interface ProjectCardProps {
   index: number;
 }
 
+/**
+ * Full dex entry — the complete list page shows everything at once, so unlike
+ * PokedexCard on the home page there is nothing to flip for.
+ */
 export default function ProjectCard({ project, index }: ProjectCardProps) {
-  const typeColors: Record<string, string> = {
-    frontend: 'from-poke-fire to-poke-electric',
-    backend: 'from-poke-water to-poke-ice',
-    fullstack: 'from-poke-psychic to-poke-fairy',
-    ml: 'from-poke-dragon to-poke-ghost',
-    embedded: 'from-poke-steel to-poke-rock',
-  };
-
-  const gradientClass = typeColors[project.types[0]?.toLowerCase()] || 'from-poke-normal to-slate-700';
+  const accent = categoryHex(project.types[0]);
+  const entryNo = String(index + 1).padStart(3, '0');
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      whileHover={{ scale: 1.02 }}
-      className={`bg-gradient-to-br ${gradientClass} rounded-2xl p-6 shadow-2xl border-4 border-poke-yellow flex flex-col`}
-    >
-      {/* Header */}
-      <div className="flex justify-between items-start mb-4">
-        <span className="text-poke-yellow font-pokemon text-xs">
-          #{String(index + 1).padStart(3, '0')}
-        </span>
-        <div className="flex gap-2">
-          {project.types.map((type) => (
-            <span
-              key={type}
-              className="px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase"
-            >
-              {type}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Title */}
-      <h3 className="text-2xl font-pokemon text-white mb-4 uppercase">
-        {project.name}
-      </h3>
-
-      {/* Description */}
-      <p className="text-sm text-white/90 mb-6 leading-relaxed flex-grow">
-        {project.description}
-      </p>
-
-      {/* Tech stack */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {project.techs.map((tech) => (
-          <span
-            key={tech}
-            className="px-3 py-2 bg-white/20 rounded-lg text-sm text-white font-semibold"
-          >
-            {tech}
+    <div className="reveal-band h-full">
+      <article className="flex flex-col h-full bg-paper pixel-lift">
+      <div className="border-b-[3px] border-ink">
+        <div className="h-2" style={{ background: accent }} aria-hidden="true" />
+        <div className="flex items-center gap-2 px-3 py-2 bg-ink">
+          <span className="font-data text-xs font-semibold text-paper tabular-nums">
+            No. {entryNo}
           </span>
-        ))}
+          <span className="ml-auto flex flex-wrap gap-1.5 justify-end">
+            {project.types.map((t) => (
+              <TypeChip key={t} type={t} compact />
+            ))}
+          </span>
+        </div>
       </div>
 
-      {/* Links */}
-      {(project.github || project.link) && (
-        <div className="flex gap-4 mt-auto">
-          {project.github && (
-            <a
-              href={project.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 bg-black/40 hover:bg-black/60 transition-colors px-4 py-3 rounded-lg text-center font-bold text-white text-sm"
-            >
-              GitHub →
-            </a>
-          )}
-          {project.link && (
-            <a
-              href={project.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 bg-poke-yellow hover:bg-poke-yellow/80 transition-colors px-4 py-3 rounded-lg text-center font-bold text-poke-black text-sm"
-            >
-              Live Demo →
-            </a>
-          )}
+      <div className="flex flex-col flex-1 p-5">
+        <h3 className="font-display text-sm sm:text-base text-ink leading-[1.35] mb-3">
+          {project.name}
+        </h3>
+
+        <p className="text-sm text-ink-soft leading-relaxed mb-5">{project.description}</p>
+
+        <div className="mb-5">
+          <p className="font-display text-[0.5rem] tracking-[0.2em] text-ink-soft mb-2">TECH</p>
+          <div className="flex flex-wrap gap-1.5">
+            {project.techs.map((tech) => (
+              <span
+                key={tech}
+                className="font-data text-[0.7rem] px-2 py-1 bg-paper-2 border-2 border-ink text-ink"
+              >
+                {tech}
+              </span>
+            ))}
+          </div>
         </div>
-      )}
-    </motion.div>
+
+        {(project.github || project.link) && (
+          <div className="mt-auto flex flex-wrap gap-2">
+            {project.github && (
+              <a
+                href={project.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-track-project={project.name}
+                data-track-action="github"
+                className="flex-1 text-center font-display text-[0.6rem] tracking-wider px-4 py-3 bg-paper-2 border-[3px] border-ink text-ink hover:bg-paper-3"
+              >
+                GITHUB
+              </a>
+            )}
+            {project.link && (
+              <a
+                href={project.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-track-project={project.name}
+                data-track-action="demo"
+                className="flex-1 text-center font-display text-[0.6rem] tracking-wider px-4 py-3 bg-dex-red border-[3px] border-ink text-paper hover:bg-dex-red-deep"
+              >
+                LIVE DEMO
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+      </article>
+    </div>
   );
 }

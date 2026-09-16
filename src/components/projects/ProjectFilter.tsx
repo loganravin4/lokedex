@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import ProjectCard from './ProjectCard';
+import { categoryHex } from '../../lib/pokeTypes';
 
 interface Project {
   id: string;
@@ -19,64 +19,79 @@ interface ProjectFilterProps {
 export default function ProjectFilter({ projects }: ProjectFilterProps) {
   const [selectedType, setSelectedType] = useState<string>('all');
 
-  // Get unique types
-  const allTypes = [...new Set(projects.flatMap(p => p.types))];
+  const allTypes = [...new Set(projects.flatMap((p) => p.types))].sort();
 
-  // Filter projects
-  const filteredProjects = selectedType === 'all' 
-    ? projects 
-    : projects.filter(p => p.types.includes(selectedType));
+  const filtered =
+    selectedType === 'all' ? projects : projects.filter((p) => p.types.includes(selectedType));
+
+  const tab = (active: boolean) =>
+    [
+      'font-display text-[0.6rem] tracking-wider px-4 py-3 border-[3px] border-ink cursor-pointer',
+      'flex items-center gap-2 hw-btn',
+      active ? 'bg-ink text-paper' : 'bg-paper text-ink hover:bg-dex-yellow',
+    ].join(' ');
 
   return (
     <div>
-      {/* Filter buttons */}
-      <div className="flex flex-wrap justify-center gap-3 mb-12">
+      {/* Filter row reads as a game menu: the active option carries a cursor */}
+      <div role="group" aria-label="Filter projects by type" className="flex flex-wrap gap-2 mb-8">
         <button
+          type="button"
           onClick={() => setSelectedType('all')}
-          className={`px-6 py-2 rounded-lg font-bold transition-colors ${
-            selectedType === 'all'
-              ? 'bg-poke-yellow text-poke-black'
-              : 'bg-white/10 text-white hover:bg-white/20'
-          }`}
+          aria-pressed={selectedType === 'all'}
+          className={tab(selectedType === 'all')}
         >
-          All ({projects.length})
+          {selectedType === 'all' && (
+            <span aria-hidden="true" className="text-dex-yellow">
+              &#9656;
+            </span>
+          )}
+          ALL
+          <span className="font-data text-[0.7rem] opacity-70">{projects.length}</span>
         </button>
-        {allTypes.sort().map((type) => {
-          const count = projects.filter(p => p.types.includes(type)).length;
+
+        {allTypes.map((type) => {
+          const count = projects.filter((p) => p.types.includes(type)).length;
+          const active = selectedType === type;
           return (
             <button
               key={type}
+              type="button"
               onClick={() => setSelectedType(type)}
-              className={`px-6 py-2 rounded-lg font-semibold transition-colors capitalize ${
-                selectedType === type
-                  ? 'bg-poke-yellow text-poke-black'
-                  : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
+              aria-pressed={active}
+              className={tab(active)}
             >
-              {type} ({count})
+              {active && (
+                <span aria-hidden="true" className="text-dex-yellow">
+                  &#9656;
+                </span>
+              )}
+              <span
+                className="w-3 h-3 border-2 border-ink shrink-0"
+                style={{ background: categoryHex(type) }}
+                aria-hidden="true"
+              />
+              {type.toUpperCase()}
+              <span className="font-data text-[0.7rem] opacity-70">{count}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Projects grid */}
-      <motion.div 
-        layout
-        className="grid grid-cols-1 lg:grid-cols-2 gap-8"
-      >
-        {filteredProjects.map((project, index) => (
-          <ProjectCard 
-            key={project.id} 
-            project={project} 
-            index={index}
-          />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {filtered.map((project, index) => (
+          <ProjectCard key={project.id} project={project} index={index} />
         ))}
-      </motion.div>
+      </div>
 
-      {/* Empty state */}
-      {filteredProjects.length === 0 && (
-        <div className="text-center py-20">
-          <p className="text-white/60 text-xl">No projects found for this type.</p>
+      {filtered.length === 0 && (
+        <div className="bg-ink p-2">
+          <p className="bg-screen-0 px-4 py-6 text-center font-data text-sm text-screen-3">
+            <span className="text-screen-2" aria-hidden="true">
+              &gt;
+            </span>{' '}
+            No entries of that type yet.
+          </p>
         </div>
       )}
     </div>

@@ -1,23 +1,63 @@
+import { useCallback, useEffect, useState } from 'react';
 import TypingTitle from './TypingTitle';
+import { graduationCountdown, type Countdown } from '../../lib/graduation';
 
 interface DexEntryProps {
   titles: string[];
 }
 
+/** Trainer-card rows. Values are spelled out — no abbreviations. */
 const STATS: Array<[string, string]> = [
-  ['LV', '100'],
-  ['MAJOR', 'CmpE + CS'],
+  ['NAME', 'Logan Ravinuthala'],
+  ['SCHOOL', 'Northeastern University'],
+  ['MAJOR', 'Computer Engineering & Computer Science'],
+  ['GRADUATION', 'May 2027'],
   ['GPA', '3.9 / 4.0'],
-  ['DEX', 'NEU 2027'],
+  ['LEVEL', '100'],
 ];
 
-/**
- * The signature element: the hero rendered as a live Pokédex entry.
- * The boot sequence is pure CSS (see .boot-seq / .lcd-on), so the entry is
- * legible with no JS, no animation support, or reduced motion. Only the
- * typed job title needs hydration.
- */
+/** Sections the D-pad steps through, in page order. */
+const SECTIONS = ['skills', 'projects', 'about', 'new-grad'];
+
+const NAV_OFFSET = 96;
+
 export default function DexEntry({ titles }: DexEntryProps) {
+  const [jump, setJump] = useState(0);
+
+  // Filled in after mount, never during SSR. The page-level script used to
+  // write these numbers into this island's DOM before React hydrated it, which
+  // tripped a text-content mismatch and made React throw away the whole
+  // server-rendered tree and re-render from scratch.
+  const [countdown, setCountdown] = useState<Countdown | null>(null);
+  useEffect(() => {
+    const tick = () => setCountdown(graduationCountdown());
+    tick();
+    const id = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const goSection = useCallback((dir: 1 | -1) => {
+    const els = SECTIONS.map((id) => document.getElementById(id)).filter(
+      (el): el is HTMLElement => Boolean(el)
+    );
+    if (!els.length) return;
+
+    const tops = els.map((el) => el.getBoundingClientRect().top + window.scrollY - NAV_OFFSET);
+    const here = window.scrollY;
+
+    let target: number;
+    if (dir === 1) {
+      target = tops.find((t) => t > here + 8) ?? tops[tops.length - 1];
+    } else {
+      const prev = [...tops].reverse().find((t) => t < here - 8);
+      target = prev ?? 0;
+    }
+    window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+  }, []);
+
+  const dpadBtn =
+    'hw-btn flex items-center justify-center bg-ink text-paper hover:bg-dex-red cursor-pointer text-[0.7rem] leading-none';
+
   return (
     <div className="pixel-lift bg-paper">
       {/* header plate */}
@@ -31,14 +71,14 @@ export default function DexEntry({ titles }: DexEntryProps) {
           {[0, 1, 2, 3].map((i) => (
             <span
               key={i}
-              className={`block w-2 h-4 border-2 border-paper/80 ${i < 3 ? 'bg-paper/90' : ''}`}
+              className={`block w-2 h-4 border-2 border-paper/80 ${i < 3 ? 'bg-dex-yellow' : ''}`}
             />
           ))}
         </span>
       </div>
 
-      <div className="grid gap-6 p-5 md:p-7 md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] md:gap-8">
-        {/* LCD: the portrait lives inside the screen */}
+      <div className="grid gap-6 p-5 md:p-7 md:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] md:gap-8">
+        {/* LCD + working hardware controls */}
         <div className="flex flex-col gap-4">
           <div className="bg-ink p-2 lcd-on">
             <div className="relative aspect-square w-full bg-screen-0 overflow-hidden crt">
@@ -56,7 +96,7 @@ export default function DexEntry({ titles }: DexEntryProps) {
               />
               <div className="absolute inset-0 bg-screen-0/40" aria-hidden="true" />
               <div
-                className="absolute inset-x-0 h-10 z-[2] animate-scan-sweep pointer-events-none"
+                className="absolute inset-x-0 h-10 z-[2] animate-scan-sweep pointer-events-none motion-reduce:hidden"
                 style={{
                   background:
                     'linear-gradient(to bottom, transparent, rgba(155,188,15,0.22), transparent)',
@@ -69,24 +109,90 @@ export default function DexEntry({ titles }: DexEntryProps) {
             </div>
           </div>
 
-          {/* D-pad + action buttons: device chrome, not controls */}
-          <div className="flex items-center justify-between px-1" aria-hidden="true">
-            <div className="relative w-16 h-16 shrink-0">
-              <span className="absolute left-1/3 top-0 w-1/3 h-full bg-ink" />
-              <span className="absolute top-1/3 left-0 h-1/3 w-full bg-ink" />
-              <span className="absolute left-[40%] top-[40%] w-[20%] h-[20%] rounded-full bg-paper-3" />
+          <div className="flex items-start justify-between gap-3">
+            {/* D-pad: up/down step sections, left/right cycle the title */}
+            <div className="shrink-0">
+              <div className="grid grid-cols-3 grid-rows-3 w-36 h-36 sm:w-32 sm:h-32">
+                <span />
+                <button
+                  type="button"
+                  onClick={() => goSection(-1)}
+                  className={dpadBtn}
+                  aria-label="Jump to previous section"
+                  title="Previous section"
+                >
+                  &#9650;
+                </button>
+                <span />
+                <button
+                  type="button"
+                  onClick={() => setJump((j) => j - 1)}
+                  className={dpadBtn}
+                  aria-label="Show previous title"
+                  title="Previous title"
+                >
+                  &#9664;
+                </button>
+                <span className="bg-ink flex items-center justify-center">
+                  <span className="w-2 h-2 rounded-full bg-paper-3" aria-hidden="true" />
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setJump((j) => j + 1)}
+                  className={dpadBtn}
+                  aria-label="Show next title"
+                  title="Next title"
+                >
+                  &#9654;
+                </button>
+                <span />
+                <button
+                  type="button"
+                  onClick={() => goSection(1)}
+                  className={dpadBtn}
+                  aria-label="Jump to next section"
+                  title="Next section"
+                >
+                  &#9660;
+                </button>
+                <span />
+              </div>
             </div>
-            <div className="flex gap-3 items-end">
-              <span className="flex flex-col items-center gap-1.5">
-                <span className="w-9 h-9 rounded-full bg-dex-red border-[3px] border-ink" />
-                <span className="font-display text-[0.55rem] text-ink-soft">A</span>
-              </span>
-              <span className="flex flex-col items-center gap-1.5">
-                <span className="w-9 h-9 rounded-full bg-dex-blue border-[3px] border-ink" />
-                <span className="font-display text-[0.55rem] text-ink-soft">B</span>
-              </span>
+
+            {/* A / B jump to the two pages you'd actually want next */}
+            <div className="flex gap-3 items-start pt-1">
+              <a
+                href="/projects"
+                className="hw-btn flex flex-col items-center gap-1.5 group"
+                aria-label="A button: go to Projects"
+                title="Projects"
+              >
+                <span className="w-11 h-11 rounded-full bg-dex-red border-[3px] border-ink flex items-center justify-center font-display text-xs text-paper">
+                  A
+                </span>
+                <span className="font-display text-[0.55rem] tracking-[0.15em] text-ink-soft">
+                  PROJECTS
+                </span>
+              </a>
+              <a
+                href="/contact"
+                className="hw-btn flex flex-col items-center gap-1.5 group"
+                aria-label="B button: go to Contact"
+                title="Contact"
+              >
+                <span className="w-11 h-11 rounded-full bg-dex-blue border-[3px] border-ink flex items-center justify-center font-display text-xs text-paper">
+                  B
+                </span>
+                <span className="font-display text-[0.55rem] tracking-[0.15em] text-ink-soft">
+                  CONTACT
+                </span>
+              </a>
             </div>
           </div>
+
+          <p className="font-data text-[0.7rem] text-ink-soft leading-snug">
+            The D-pad works: up and down step through sections, left and right cycle the title.
+          </p>
         </div>
 
         {/* Entry text — powers on line by line via CSS */}
@@ -110,34 +216,42 @@ export default function DexEntry({ titles }: DexEntryProps) {
                 typingSpeed={100}
                 deletingSpeed={50}
                 pauseDuration={2000}
+                jump={jump}
               />
             </p>
           </div>
 
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 mb-5">
-            {STATS.map(([k, v]) => (
-              <div key={k} className="flex items-baseline gap-2 border-b-2 border-paper-3 pb-1.5">
-                <dt className="font-display text-[0.55rem] tracking-[0.15em] text-ink-soft shrink-0">
-                  {k}
-                </dt>
-                <dd className="font-data text-sm text-ink ml-auto text-right">{v}</dd>
-              </div>
-            ))}
-          </dl>
-
-          <p className="text-sm text-ink-soft leading-relaxed mb-3">
-            Honors Computer Engineering &amp; Computer Science @ Northeastern University.
-          </p>
+          {/* Trainer card */}
+          <div className="border-[3px] border-ink mb-5">
+            <div className="bg-dex-yellow border-b-[3px] border-ink px-3 py-2">
+              <p className="font-display text-[0.6rem] tracking-[0.18em] text-ink">TRAINER CARD</p>
+            </div>
+            <dl className="bg-dex-yellow/25">
+              {STATS.map(([k, v], i) => (
+                <div
+                  key={k}
+                  className={`flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-3 py-2 ${
+                    i < STATS.length - 1 ? 'border-b-2 border-ink/20' : ''
+                  }`}
+                >
+                  <dt className="font-display text-[0.5rem] tracking-[0.15em] text-ink-soft w-24 shrink-0">
+                    {k}
+                  </dt>
+                  <dd className="font-data text-sm text-ink min-w-0">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
 
           <p className="text-sm text-ink leading-relaxed mb-6">
             Exploring New Grad software engineering (or related) opportunities for when I graduate
             in{' '}
-            <span data-graduation-countdown className="font-data font-semibold text-dex-red">
-              &hellip;
+            <span className="font-data font-semibold text-dex-red">
+              {countdown ? countdown.text : '…'}
             </span>{' '}
             (
-            <span data-graduation-days className="font-data font-semibold text-dex-red">
-              --
+            <span className="font-data font-semibold text-dex-red">
+              {countdown ? countdown.days : '--'}
             </span>{' '}
             days).{' '}
             <a
@@ -159,7 +273,7 @@ export default function DexEntry({ titles }: DexEntryProps) {
             <a
               href="#about"
               data-track-cta="About Trainer"
-              className="font-display text-[0.7rem] tracking-wider px-5 py-3.5 pixel-box pixel-press bg-paper text-ink hover:bg-paper-3"
+              className="font-display text-[0.7rem] tracking-wider px-5 py-3.5 pixel-box pixel-press bg-dex-yellow text-ink hover:bg-dex-yellow-deep"
             >
               ABOUT TRAINER
             </a>

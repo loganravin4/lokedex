@@ -4,7 +4,7 @@ interface Props {
   title: string;
   eyebrow?: string;
   id?: string;
-  tone?: 'red' | 'blue' | 'ink';
+  tone?: 'red' | 'blue' | 'ink' | 'yellow';
   class?: string;
 }
 const { title, eyebrow, id, tone = 'red', class: className = '' } = Astro.props;
@@ -13,6 +13,8 @@ const tones = {
   red: 'bg-dex-red text-paper',
   blue: 'bg-dex-blue text-paper',
   ink: 'bg-ink text-paper',
+  // ink on yellow is the strongest pair in the system at 12.3:1
+  yellow: 'bg-dex-yellow text-ink',
 };
 ---
 

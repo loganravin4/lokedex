@@ -84,11 +84,13 @@ const titles = [
       title="TYPE EFFECTIVENESS"
       eyebrow={`${techStack.length} CAUGHT`}
       id="skills"
+      tone="yellow"
     >
       <p class="text-sm text-ink-soft mb-6">Technologies I've caught and trained.</p>
-      <ul class="flex flex-wrap gap-2.5 list-none p-0 m-0">
+      <!-- 12 entries: 2/3/4/6 columns all divide evenly, so no orphan row -->
+      <ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 list-none p-0 m-0">
         {techStack.map((item) => (
-          <li>
+          <li class="flex">
             <TypeChip type={item.type} tech={item.tech} />
           </li>
         ))}
@@ -100,12 +102,13 @@ const titles = [
       title="PROJECT LOKÉDEX"
       eyebrow={`${transformedProjects.length} ENTRIES`}
       id="projects"
+      tone="yellow"
     >
       <p class="text-sm text-ink-soft mb-7">The Elite Four of my portfolio.</p>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {transformedProjects.map((project, index) => (
-          <PokedexCard project={project} index={index} client:visible />
+          <PokedexCard project={project} index={index} client:idle />
         ))}
       </div>
 
@@ -152,7 +155,7 @@ const titles = [
 
       <!-- Now playing -->
       <div class="mt-8">
-        <SpotifyWidget client:visible />
+        <SpotifyWidget client:idle />
       </div>
 
       <!-- Education -->
@@ -212,58 +215,26 @@ const titles = [
 </BaseLayout>
 
 <script>
-  const graduationDate = new Date('2027-05-02T00:00:00-04:00');
+  import { graduationCountdown } from '../lib/graduation';
 
-  const toWholeDays = (milliseconds: number) => Math.ceil(milliseconds / (1000 * 60 * 60 * 24));
-
-  const formatCountdown = (milliseconds: number) => {
-    const totalDays = toWholeDays(milliseconds);
-    const totalMonths = Math.floor(totalDays / 30.44);
-    const remainingDays = Math.max(0, Math.round(totalDays - totalMonths * 30.44));
-
-    if (totalMonths <= 0) {
-      return `${totalDays} day${totalDays === 1 ? '' : 's'}`;
-    }
-
-    return `${totalMonths} month${totalMonths === 1 ? '' : 's'} and ${remainingDays} day${remainingDays === 1 ? '' : 's'}`;
-  };
-
-  const updateGraduationCountdown = () => {
-    const countdownEls = document.querySelectorAll<HTMLSpanElement>('[data-graduation-countdown]');
-    const daysEls = document.querySelectorAll<HTMLSpanElement>('[data-graduation-days]');
-    if (countdownEls.length === 0 || daysEls.length === 0) return;
-
-    const now = new Date();
-    const diff = graduationDate.getTime() - now.getTime();
-
-    if (diff <= 0) {
-      countdownEls.forEach((el) => {
-        el.textContent = 'graduated!';
-      });
-      daysEls.forEach((el) => {
-        el.textContent = '0';
-      });
-      return;
-    }
-
-    const days = String(toWholeDays(diff));
-    const countdown = formatCountdown(diff);
-    countdownEls.forEach((el) => {
-      el.textContent = countdown;
-    });
-    daysEls.forEach((el) => {
-      el.textContent = days;
-    });
+  // Scoped to the Astro-rendered timeline panel only. The hero renders its own
+  // countdown inside React; reaching into that island from here caused a
+  // hydration mismatch.
+  const update = () => {
+    const root = document.getElementById('new-grad');
+    if (!root) return;
+    const { text, days } = graduationCountdown();
+    root.querySelectorAll<HTMLElement>('[data-graduation-countdown]')
+      .forEach((el) => { el.textContent = text; });
+    root.querySelectorAll<HTMLElement>('[data-graduation-days]')
+      .forEach((el) => { el.textContent = days; });
   };
 
   let timer: number | undefined;
-
   const start = () => {
-    updateGraduationCountdown();
+    update();
     window.clearInterval(timer);
-    timer = window.setInterval(updateGraduationCountdown, 60_000);
-    // the hero types its countdown in after the boot sequence
-    window.setTimeout(updateGraduationCountdown, 1200);
+    timer = window.setInterval(update, 60_000);
   };
 
   start();

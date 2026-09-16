@@ -21,7 +21,7 @@ export default function TypeChip({ type, tech, compact = false }: TypeChipProps)
   }
 
   return (
-    <span className="inline-flex flex-col border-[3px] border-ink" style={{ background: bg }}>
+    <span className="flex flex-col h-full w-full border-[3px] border-ink" style={{ background: bg }}>
       <span className="font-display text-[0.7rem] tracking-wider px-3 pt-2 pb-1.5" style={{ color: fg }}>
         {tech ?? label}
       </span>
