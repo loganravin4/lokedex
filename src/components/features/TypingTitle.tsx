@@ -29,16 +29,15 @@ export default function TypingTitle({
   pauseDuration = 2000,
   jump = 0,
 }: TypingTitleProps) {
-  // Shuffle titles once on mount
   const shuffledTitles = useMemo(() => shuffleArray(titles), [titles]);
   
   const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isPaused, setIsPaused] = useState(true); // Start paused to show first character after mount
+  // Starts paused so the initial delay runs before the first character
+  const [isPaused, setIsPaused] = useState(true);
 
-  // D-pad left/right jumps straight to another title instead of waiting for
-  // the type/delete cycle.
+  // D-pad left/right skips the type/delete cycle and jumps straight to a title
   const lastJump = useRef(jump);
   useEffect(() => {
     if (jump === lastJump.current) return;
@@ -52,7 +51,6 @@ export default function TypingTitle({
   }, [jump, shuffledTitles.length]);
 
   useEffect(() => {
-    // Initial delay before starting
     if (isPaused && displayedText === '') {
       const initialTimer = setTimeout(() => {
         setIsPaused(false);
@@ -61,7 +59,6 @@ export default function TypingTitle({
     }
 
     if (isPaused && displayedText.length > 0) {
-      // Pause after typing complete
       const pauseTimer = setTimeout(() => {
         setIsPaused(false);
         setIsDeleting(true);
@@ -76,21 +73,17 @@ export default function TypingTitle({
 
     const timer = setTimeout(() => {
       if (!isDeleting) {
-        // Typing
         if (displayedText.length < currentTitle.length) {
           setDisplayedText(currentTitle.slice(0, displayedText.length + 1));
         } else {
-          // Finished typing, track the title view
+          // Only fully typed titles count as viewed
           trackTitleView(currentTitle);
-          // Pause then delete
           setIsPaused(true);
         }
       } else {
-        // Deleting
         if (displayedText.length > 0) {
           setDisplayedText(displayedText.slice(0, -1));
         } else {
-          // Finished deleting, move to next title
           setIsDeleting(false);
           setCurrentTitleIndex((prev) => (prev + 1) % shuffledTitles.length);
         }

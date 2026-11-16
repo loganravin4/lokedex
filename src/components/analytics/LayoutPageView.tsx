@@ -1,11 +1,7 @@
 import { useEffect } from 'react';
 import { trackPageView } from '../../lib/analytics';
 
-/**
- * Sends a single $pageview on mount so every page (including those without
- * AnalyticsTracker) is counted. Required for PostHog Lifecycle / Growth
- * accounting to show data. Runs once per page load.
- */
+/** Counts every page, not just AnalyticsTracker ones, so PostHog Lifecycle has data. */
 export default function LayoutPageView() {
   useEffect(() => {
     const pathname = typeof window !== 'undefined' ? window.location.pathname : '';

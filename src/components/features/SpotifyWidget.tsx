@@ -6,10 +6,9 @@ const MAX_PLAYING_POLL_MS = 30_000;
 const END_BUFFER_MS = 2_000;
 const RETRY_MS = 5_000;
 
-// Resolves undefined on a failed request, so it can't be mistaken for the
-// API's null "nothing playing". no-store so a browser-cached response can't
-// hand back the same snapshot.
+// undefined means the request failed, distinct from the API's null "nothing playing"
 const getJson = <T,>(url: string): Promise<T | null | undefined> =>
+  // no-store so the browser can't replay a cached snapshot
   fetch(url, { cache: 'no-store' })
     .then((res) => (res.ok ? res.json() : undefined))
     .catch(() => undefined);
@@ -20,9 +19,7 @@ export default function SpotifyWidget() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // One self-scheduling loop. Every poll books the next one whatever the
-  // outcome, so a failed fetch, a repeated snapshot or a hidden tab can't
-  // stall it. Hidden tabs pause, then poll at once on return.
+  // Every poll books the next whatever the outcome, so nothing can stall the loop
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let cancelled = false;
@@ -30,6 +27,7 @@ export default function SpotifyWidget() {
 
     const schedule = (track: SpotifyTrack | null) => {
       clearTimeout(timer);
+      // Hidden tabs pause; onVisible polls at once on return
       if (cancelled || document.hidden) return;
       let delay = IDLE_POLL_MS;
       if (track) {
@@ -164,7 +162,6 @@ export default function SpotifyWidget() {
           </div>
         </div>
 
-        {/* LCD readout: equalizer over a segmented track clock */}
         <div className="mt-4 bg-ink p-1.5">
           <div className="crt bg-screen-0 px-3 pt-3 pb-2.5">
             <div className="flex items-end gap-[3px] h-10 sm:h-12" aria-hidden="true">
@@ -234,7 +231,7 @@ export default function SpotifyWidget() {
 
 const SEGMENTS = 20;
 
-/** [peak scale, period in s, delay in s]. Negative delays desync the bars on first paint. */
+/** [peak scale, period in s, delay in s]; negative delays desync the bars on first paint. */
 const EQ_BARS: Array<[number, number, number]> = Array.from({ length: 16 }, (_, i) => [
   0.55 + 0.45 * Math.abs(Math.sin(i * 1.7 + 0.4)),
   0.7 + ((i * 37) % 5) * 0.12,
@@ -246,7 +243,6 @@ function formatTime(ms: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-/** Device plate: ink header strip with a status lamp over a recessed body. */
 function Plate({ lamp, title, aside, children }: { lamp: 'on' | 'off'; title: string; aside: string; children: ReactNode }) {
   return (
     <div className="bg-paper-2 border-[3px] border-ink" data-spotify-widget>

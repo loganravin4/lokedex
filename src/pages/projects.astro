@@ -5,10 +5,8 @@ import ProjectFilter from '../components/projects/ProjectFilter';
 import AnalyticsTracker from '../components/analytics/AnalyticsTracker';
 import { fetchProjects } from '../lib/fetchProjects';
 
-// Fetch ALL projects from Sanity
 const projects = await fetchProjects();
 
-// Transform Sanity data
 const transformedProjects = projects.map((project) => ({
   id: project._id,
   name: project.name,

@@ -8,7 +8,6 @@ export const GET: APIRoute = async () => {
     if (!token.ok) return emptyJson();
     const access_token = token.accessToken;
 
-    // Get recent tracks
     const recentTracksResponse = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=5', {
       headers: {
         'Authorization': `Bearer ${access_token}`,
@@ -17,7 +16,6 @@ export const GET: APIRoute = async () => {
 
     const recentTracksData = recentTracksResponse.ok ? await recentTracksResponse.json() : null;
     
-    // Get top artists
     const topArtistsResponse = await fetch('https://api.spotify.com/v1/me/top/artists?time_range=short_term&limit=5', {
       headers: {
         'Authorization': `Bearer ${access_token}`,

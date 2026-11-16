@@ -5,7 +5,6 @@ import ExperienceCard from '../components/features/ExperienceCard';
 import AnalyticsTracker from '../components/analytics/AnalyticsTracker';
 import { fetchExperiences } from '../lib/fetchExperiences';
 
-// Fetch all experiences from Sanity, then split them into their two sections.
 const experiences = await fetchExperiences();
 
 const sections = [

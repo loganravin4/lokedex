@@ -40,7 +40,6 @@ const isActive = (href: string) =>
 
     <div class="flex-1"></div>
 
-    <!-- Desktop tabs -->
     <div class="hidden md:flex items-end gap-2">
       {links.map((link) => (
         <a
@@ -58,7 +57,6 @@ const isActive = (href: string) =>
       ))}
     </div>
 
-    <!-- Mobile: START button -->
     <button
       id="menu-toggle"
       class="md:hidden font-display text-[0.65rem] tracking-wider px-4 min-h-11 pixel-box pixel-press bg-paper text-ink"
@@ -113,8 +111,7 @@ const isActive = (href: string) =>
     const label = document.getElementById('menu-label');
     if (!toggle || !menu || !label) return;
 
-    // ClientRouter fires astro:page-load on first load too. Without this
-    // guard two click listeners bind and cancel each other out.
+    // astro:page-load also fires on first load; two listeners would cancel out
     if (toggle.dataset.bound === '1') return;
     toggle.dataset.bound = '1';
 

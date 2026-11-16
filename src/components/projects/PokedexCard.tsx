@@ -2,11 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import TypeChip from '../ui/TypeChip';
 import { categoryHex } from '../../lib/pokeTypes';
 
-/**
- * Flippable project entry with pointer-tracked tilt.
- * Tilt adapted from 21st.dev "Tilt Flip Card" (@dudadecesaro).
- */
-
 interface Project {
   id: string;
   name: string;
@@ -29,6 +24,7 @@ const mapRange = (v: number, a1: number, a2: number, b1: number, b2: number) =>
 // React 18 has no typed `inert` prop; browsers read the bare attribute
 const inertIf = (hidden: boolean) => (hidden ? ({ inert: '' } as Record<string, string>) : {});
 
+/** Tilt adapted from 21st.dev "Tilt Flip Card" (@dudadecesaro). */
 export default function PokedexCard({ project, index }: PokedexCardProps) {
   const [flipped, setFlipped] = useState(false);
 
@@ -120,7 +116,6 @@ export default function PokedexCard({ project, index }: PokedexCardProps) {
           className="relative h-full w-full [transform-style:preserve-3d] card-flip"
           style={{ transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}
         >
-          {/* ---------- FRONT ---------- */}
           <div
             ref={frontRef}
             className={faceBase}
@@ -187,7 +182,6 @@ export default function PokedexCard({ project, index }: PokedexCardProps) {
             </div>
           </div>
 
-          {/* ---------- BACK ---------- */}
           <div
             ref={backRef}
             className={`${faceBase} [transform:rotateY(180deg)]`}

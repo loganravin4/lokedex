@@ -48,7 +48,6 @@ export default function DexEntry({ titles }: DexEntryProps) {
 
   return (
     <div className="pixel-lift bg-paper">
-      {/* header plate */}
       <div className="flex items-center gap-3 px-4 py-3 bg-dex-red text-paper border-b-[3px] border-ink">
         <span className="font-display text-[0.6rem] tracking-[0.2em] opacity-80" aria-hidden="true">
           &#9622;&#9622;
@@ -66,7 +65,6 @@ export default function DexEntry({ titles }: DexEntryProps) {
       </div>
 
       <div className="grid gap-6 p-5 md:p-7 md:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] md:gap-8">
-        {/* LCD + working hardware controls */}
         <div className="flex flex-col gap-4">
           <div className="bg-ink p-2 lcd-on">
             <div className="relative aspect-square w-full bg-screen-0 overflow-hidden">
@@ -84,7 +82,6 @@ export default function DexEntry({ titles }: DexEntryProps) {
                 }}
               />
 
-              {/* Scan layer: LCD tint and scanlines */}
               <div
                 data-scan-layer
                 // Opaque base so mix-blend-luminosity blends against the LCD
@@ -235,7 +232,7 @@ export default function DexEntry({ titles }: DexEntryProps) {
           </p>
         </div>
 
-        {/* Entry text — powers on line by line via CSS */}
+        {/* Powers on line by line via .boot-seq in CSS */}
         <div className="min-w-0 boot-seq">
           <p className="font-display text-[0.6rem] tracking-[0.25em] text-ink-soft mb-2">TRAINER</p>
 
@@ -264,7 +261,6 @@ export default function DexEntry({ titles }: DexEntryProps) {
             </p>
           </div>
 
-          {/* Trainer card */}
           <div className="border-[3px] border-ink mb-5">
             <div className="bg-dex-yellow border-b-[3px] border-ink px-3 py-2">
               <p className="font-display text-[0.6rem] tracking-[0.18em] text-ink">TRAINER CARD</p>
@@ -286,7 +282,6 @@ export default function DexEntry({ titles }: DexEntryProps) {
             </dl>
           </div>
 
-          {/* Actions span the column width */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <a
               href="#projects"

@@ -8,10 +8,8 @@ import SpotifyWidget from '../components/features/SpotifyWidget';
 import AnalyticsTracker from '../components/analytics/AnalyticsTracker';
 import { fetchFeaturedProjects } from '../lib/fetchProjects';
 
-// Fetch featured projects from Sanity
 const projects = await fetchFeaturedProjects();
 
-// Transform Sanity data to match component props
 const transformedProjects = projects.map((project) => ({
   id: project._id,
   name: project.name,
@@ -65,10 +63,8 @@ const titles = [
   <AnalyticsTracker pageName="Home" client:load />
 
   <main class="mx-auto max-w-6xl px-4 py-8 md:py-12 flex flex-col gap-14 md:gap-20">
-    <!-- Hero: the signature Pokédex entry screen -->
     <DexEntry titles={titles} client:load />
 
-    <!-- Welcome -->
     <Panel title="WELCOME" eyebrow="README" tone="ink">
       <p class="text-base md:text-lg leading-relaxed text-ink">
         Welcome to the <span class="font-display text-sm text-dex-red">LOKÉDEX</span>.
@@ -97,7 +93,6 @@ const titles = [
       </ul>
     </Panel>
 
-    <!-- Projects -->
     <Panel
       title="PROJECT LOKÉDEX"
       eyebrow={`${transformedProjects.length} ENTRIES`}
@@ -122,7 +117,6 @@ const titles = [
       </div>
     </Panel>
 
-    <!-- About -->
     <Panel title="ABOUT THE TRAINER" eyebrow="BIO" id="about" tone="blue">
       <div class="max-w-[68ch] flex flex-col gap-4 text-ink leading-relaxed">
         <p>
@@ -153,12 +147,10 @@ const titles = [
         </p>
       </div>
 
-      <!-- Now playing -->
       <div class="mt-8">
         <SpotifyWidget client:idle />
       </div>
 
-      <!-- Education -->
       <div class="mt-8 pt-7 border-t-[3px] border-ink">
         <h3 class="font-display text-[0.7rem] tracking-[0.2em] text-ink-soft mb-4">EDUCATION</h3>
         <div class="bg-paper-2 border-[3px] border-ink p-4">
@@ -170,7 +162,6 @@ const titles = [
         </div>
       </div>
 
-      <!-- Socials -->
       <div class="flex flex-wrap gap-3 mt-8">
         <a
           href="https://github.com/loganravin4"

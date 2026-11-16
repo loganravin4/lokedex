@@ -1,7 +1,7 @@
 /**
- * Pokémon Type Colours
- * The site's only data-encoding palette: a type colour always means the thing
- * is of that type, never decoration. Label colours are derived from luminance
+ * Pokémon Type Colors
+ * The site's only data-encoding palette: a type color always means the thing
+ * is of that type, never decoration. Label colors are derived from luminance
  * so every chip clears WCAG AA.
  */
 
@@ -65,11 +65,9 @@ export function contrast(a: string, b: string): number {
   return (l1 + 0.05) / (l2 + 0.05);
 }
 
-/**
- * Picks ink or paper, whichever clears 4.5:1.
- * Crossover sits at L≈0.169; worst case across the 18 types is 4.56:1.
- */
+/** Picks ink or paper, whichever clears 4.5:1. */
 export function labelFor(hex: string): string {
+  // Crossover sits at L≈0.169; worst case across the 18 types is 4.56:1
   return luminance(hex) > 0.169 ? INK : PAPER;
 }
 

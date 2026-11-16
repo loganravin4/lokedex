@@ -1,8 +1,3 @@
-/**
- * PostHog Analytics Utility
- * Tracks events for portfolio website analytics
- */
-
 declare global {
   interface Window {
     posthog?: {
@@ -13,16 +8,12 @@ declare global {
   }
 }
 
-/**
- * Initialize PostHog
- */
 export function initPostHog(apiKey: string, apiHost: string = 'https://us.i.posthog.com'): void {
   if (typeof window === 'undefined') return;
 
-  // Only load PostHog if not already loaded
   if (window.posthog) return;
 
-  // PostHog initialization snippet
+  // PostHog's stub loader: queues calls until array.js arrives
   (function(t: any, e: any) {
     var o: any, n: any, p: any, r: any;
     e.__SV ||
@@ -69,16 +60,13 @@ export function initPostHog(apiKey: string, apiHost: string = 'https://us.i.post
     api_host: apiHost,
     // We send $pageview via LayoutPageView; avoid duplicate autocapture pageviews
     capture_pageview: false,
-    // Session recording (and click maps) — default is on; set explicitly for clarity
+    // Already the default, pinned since click maps ride on session recording
     disable_session_recording: false,
-    // Better retention/lifecycle: always create person profiles for anonymous users
+    // Anonymous visitors need person profiles for retention/lifecycle reports
     person_profiles: 'always',
   });
 }
 
-/**
- * Track page views
- */
 export function trackPageView(pageName: string, properties?: Record<string, any>): void {
   if (typeof window === 'undefined' || !window.posthog) return;
   
@@ -88,9 +76,6 @@ export function trackPageView(pageName: string, properties?: Record<string, any>
   });
 }
 
-/**
- * Track navigation clicks
- */
 export function trackNavigationClick(destination: string): void {
   if (typeof window === 'undefined' || !window.posthog) return;
   
@@ -100,9 +85,6 @@ export function trackNavigationClick(destination: string): void {
   });
 }
 
-/**
- * Track CTA button clicks
- */
 export function trackCTAClick(buttonName: string, location: string): void {
   if (typeof window === 'undefined' || !window.posthog) return;
   
@@ -112,9 +94,6 @@ export function trackCTAClick(buttonName: string, location: string): void {
   });
 }
 
-/**
- * Track project interactions
- */
 export function trackProjectClick(projectName: string, action: 'view' | 'github' | 'demo'): void {
   if (typeof window === 'undefined' || !window.posthog) return;
   
@@ -124,9 +103,6 @@ export function trackProjectClick(projectName: string, action: 'view' | 'github'
   });
 }
 
-/**
- * Track external link clicks
- */
 export function trackExternalLink(platform: string, url: string): void {
   if (typeof window === 'undefined' || !window.posthog) return;
   
@@ -136,9 +112,6 @@ export function trackExternalLink(platform: string, url: string): void {
   });
 }
 
-/**
- * Track form interactions
- */
 export function trackFormEvent(eventType: 'started' | 'submitted' | 'error', formName: string): void {
   if (typeof window === 'undefined' || !window.posthog) return;
   
@@ -148,9 +121,6 @@ export function trackFormEvent(eventType: 'started' | 'submitted' | 'error', for
   });
 }
 
-/**
- * Track scroll depth
- */
 export function trackScrollDepth(depth: number): void {
   if (typeof window === 'undefined' || !window.posthog) return;
   
@@ -159,9 +129,6 @@ export function trackScrollDepth(depth: number): void {
   });
 }
 
-/**
- * Track section views (when user scrolls to a section)
- */
 export function trackSectionView(sectionName: string): void {
   if (typeof window === 'undefined' || !window.posthog) return;
   
@@ -170,9 +137,6 @@ export function trackSectionView(sectionName: string): void {
   });
 }
 
-/**
- * Track tech stack badge clicks
- */
 export function trackTechClick(techName: string): void {
   if (typeof window === 'undefined' || !window.posthog) return;
   
@@ -181,9 +145,6 @@ export function trackTechClick(techName: string): void {
   });
 }
 
-/**
- * Track typing title views (which titles users see)
- */
 export function trackTitleView(title: string): void {
   if (typeof window === 'undefined' || !window.posthog) return;
   
@@ -192,9 +153,6 @@ export function trackTitleView(title: string): void {
   });
 }
 
-/**
- * Track time on page
- */
 export function trackTimeOnPage(seconds: number, pageName: string): void {
   if (typeof window === 'undefined' || !window.posthog) return;
   

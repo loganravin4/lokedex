@@ -63,11 +63,7 @@ const posthogHost = import.meta.env.PUBLIC_POSTHOG_HOST || 'https://us.i.posthog
 
     <script is:inline>
       (() => {
-        /**
-         * Reveals elements once, as they scroll into view.
-         * Sweeps per frame during a scroll rather than using
-         * IntersectionObserver, which a fast flick can outrun.
-         */
+        // Sweeps per frame on scroll, since a fast flick can outrun IntersectionObserver
         function armReveals() {
           let pending = Array.prototype.slice.call(
             document.querySelectorAll('.reveal-band:not(.is-in)')

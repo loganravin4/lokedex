@@ -14,23 +14,17 @@ interface RateLimitInfo {
   submissionCount: number;
 }
 
-// Rate limiting configuration
 const RATE_LIMIT_CONFIG = {
-  MIN_TIME_BETWEEN_SUBMISSIONS: 5 * 60 * 1000, // 5 minutes in milliseconds
+  MIN_TIME_BETWEEN_SUBMISSIONS: 5 * 60 * 1000,
   MAX_SUBMISSIONS_PER_HOUR: 3,
   STORAGE_KEY: 'contact_form_rate_limit',
 } as const;
 
-/**
- * Check if the user can submit the form based on rate limiting
- * @returns Object with canSubmit boolean and optional error message
- */
 function checkRateLimit(): { canSubmit: boolean; errorMessage?: string } {
   const now = Date.now();
   const stored = localStorage.getItem(RATE_LIMIT_CONFIG.STORAGE_KEY);
   
   if (!stored) {
-    // First submission, allow it
     return { canSubmit: true };
   }
 
@@ -38,7 +32,6 @@ function checkRateLimit(): { canSubmit: boolean; errorMessage?: string } {
     const rateLimitInfo: RateLimitInfo = JSON.parse(stored);
     const timeSinceLastSubmission = now - rateLimitInfo.lastSubmission;
     
-    // Check minimum time between submissions
     if (timeSinceLastSubmission < RATE_LIMIT_CONFIG.MIN_TIME_BETWEEN_SUBMISSIONS) {
       const minutesRemaining = Math.ceil(
         (RATE_LIMIT_CONFIG.MIN_TIME_BETWEEN_SUBMISSIONS - timeSinceLastSubmission) / (60 * 1000)
@@ -49,10 +42,9 @@ function checkRateLimit(): { canSubmit: boolean; errorMessage?: string } {
       };
     }
 
-    // Check submissions per hour (reset count if more than an hour has passed)
     const oneHourAgo = now - (60 * 60 * 1000);
+    // Hourly window has lapsed, so the stored count is stale
     if (rateLimitInfo.lastSubmission < oneHourAgo) {
-      // Reset count if last submission was more than an hour ago
       return { canSubmit: true };
     }
 
@@ -66,15 +58,12 @@ function checkRateLimit(): { canSubmit: boolean; errorMessage?: string } {
 
     return { canSubmit: true };
   } catch (error) {
-    // If there's an error parsing, allow submission but log the error
+    // Corrupt storage shouldn't lock anyone out of the form
     console.error('Error parsing rate limit data:', error);
     return { canSubmit: true };
   }
 }
 
-/**
- * Update rate limit information after a successful submission
- */
 function updateRateLimit(): void {
   const now = Date.now();
   const stored = localStorage.getItem(RATE_LIMIT_CONFIG.STORAGE_KEY);
@@ -91,7 +80,6 @@ function updateRateLimit(): void {
       rateLimitInfo = JSON.parse(stored);
       const oneHourAgo = now - (60 * 60 * 1000);
       
-      // Reset count if last submission was more than an hour ago
       if (rateLimitInfo.lastSubmission < oneHourAgo) {
         rateLimitInfo = {
           lastSubmission: now,
@@ -102,7 +90,6 @@ function updateRateLimit(): void {
         rateLimitInfo.submissionCount = (rateLimitInfo.submissionCount || 0) + 1;
       }
     } catch (error) {
-      // If parsing fails, start fresh
       rateLimitInfo = {
         lastSubmission: now,
         submissionCount: 1
@@ -127,12 +114,10 @@ export function initContactForm(): void {
     return;
   }
 
-  // ClientRouter fires astro:page-load on the initial load as well; binding
-  // twice would attach two submit handlers and send the message twice.
+  // astro:page-load also fires on first load; binding twice would double-send
   if (form.dataset.bound === '1') return;
   form.dataset.bound = '1';
 
-  // Track form started when user first interacts
   let formStarted = false;
   form.addEventListener('focusin', () => {
     if (!formStarted) {
@@ -144,18 +129,16 @@ export function initContactForm(): void {
   form.addEventListener('submit', async (e: SubmitEvent): Promise<void> => {
     e.preventDefault();
     
-    // Hide error message if it was shown before
     errorMessage.classList.add('hidden');
     
-    // Check honeypot field (bots might fill this)
+    // Only bots fill the hidden website field
     const honeypot = form.querySelector('[name="website"]') as HTMLInputElement | null;
     if (honeypot && honeypot.value) {
-      // Bot detected - silently fail
+      // Fail silently so the bot gets no signal
       console.warn('Bot detected via honeypot field');
       return;
     }
 
-    // Check rate limiting
     const rateLimitCheck = checkRateLimit();
     if (!rateLimitCheck.canSubmit) {
       const errorText = errorMessage.querySelector('p');
@@ -167,18 +150,15 @@ export function initContactForm(): void {
       return;
     }
     
-    // Show loading state
     submitBtn.disabled = true;
     submitText.classList.add('hidden');
     submitLoading.classList.remove('hidden');
 
-    // Get form data
     const formData = new FormData(form);
     
-    // Convert to object for JSON submission (exclude honeypot)
     const data: FormDataObject = {};
     formData.forEach((value: FormDataEntryValue, key: string): void => {
-      // Skip honeypot field
+      // Keep the honeypot out of the email
       if (key === 'website') {
         return;
       }
@@ -200,17 +180,12 @@ export function initContactForm(): void {
       const result: Web3FormsResponse = await response.json() as Web3FormsResponse;
 
       if (result.success) {
-        // Update rate limit after successful submission
+        // Only successful sends count toward the limit
         updateRateLimit();
-        
-        // Track successful submission
         trackFormEvent('submitted', 'contact');
-        
-        // Show success message and hide form
         form.style.display = 'none';
         successMessage.classList.remove('hidden');
       } else {
-        // Show error message
         trackFormEvent('error', 'contact');
         errorMessage.classList.remove('hidden');
         submitBtn.disabled = false;
@@ -218,7 +193,6 @@ export function initContactForm(): void {
         submitLoading.classList.add('hidden');
       }
     } catch (error: unknown) {
-      // Show error message
       console.error('Form submission error:', error);
       trackFormEvent('error', 'contact');
       errorMessage.classList.remove('hidden');
@@ -228,7 +202,6 @@ export function initContactForm(): void {
     }
   });
 
-  // Reset form button handler
   resetFormBtn.addEventListener('click', (): void => {
     form.reset();
     form.style.display = 'block';

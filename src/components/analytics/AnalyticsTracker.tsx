@@ -14,7 +14,6 @@ export default function AnalyticsTracker({ pageName }: AnalyticsTrackerProps) {
       const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
       const scrollPercent = Math.round((scrollTop / scrollHeight) * 100);
       
-      // Track milestones: 25%, 50%, 75%, 100%
       if (scrollPercent >= 25 && maxScroll < 25) {
         trackScrollDepth(25);
         maxScroll = 25;
@@ -30,7 +29,6 @@ export default function AnalyticsTracker({ pageName }: AnalyticsTrackerProps) {
       }
     };
 
-    // Track section views using Intersection Observer
     const sectionObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -45,12 +43,10 @@ export default function AnalyticsTracker({ pageName }: AnalyticsTrackerProps) {
       { threshold: 0.5 }
     );
 
-    // Observe all sections with data-section attribute
     document.querySelectorAll('[data-section]').forEach((section) => {
       sectionObserver.observe(section);
     });
 
-    // Track time on page (every 30 seconds)
     let timeOnPage = 0;
     const timeInterval = setInterval(() => {
       timeOnPage += 30;

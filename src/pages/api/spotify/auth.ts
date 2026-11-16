@@ -1,11 +1,6 @@
 import type { APIRoute } from 'astro';
 
-/**
- * Spotify OAuth Authorization Endpoint
- * 
- * Visit this endpoint to start the OAuth flow and get your refresh token
- * After authorizing, you'll be redirected to /api/spotify/callback
- */
+/** Visit to start OAuth; the callback then prints the refresh token. */
 export const GET: APIRoute = async ({ url }) => {
   const clientId = import.meta.env.SPOTIFY_CLIENT_ID;
   

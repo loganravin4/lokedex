@@ -1,10 +1,6 @@
 import { useEffect } from 'react';
 
-/**
- * Loads Microsoft Clarity for heatmaps and session replay (optional).
- * Set PUBLIC_CLARITY_PROJECT_ID in .env to enable. Get the ID from
- * https://clarity.microsoft.com → Project → Settings → Setup.
- */
+/** Off unless PUBLIC_CLARITY_PROJECT_ID is set (Clarity → Project → Settings → Setup). */
 export default function ClarityInit() {
   useEffect(() => {
     const projectId = import.meta.env.PUBLIC_CLARITY_PROJECT_ID;

@@ -1,9 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getSpotifyAccessToken, emptyJson } from '../../../lib/spotifyAuth';
 
-/**
- * Spotify Now Playing API Endpoint
- */
 export const GET: APIRoute = async () => {
 
   try {
@@ -11,7 +8,6 @@ export const GET: APIRoute = async () => {
     if (!token.ok) return emptyJson();
     const access_token = token.accessToken;
 
-    // Get currently playing track
     const nowPlayingResponse = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: {
         'Authorization': `Bearer ${access_token}`,
@@ -19,7 +15,7 @@ export const GET: APIRoute = async () => {
     });
 
     if (nowPlayingResponse.status === 204 || !nowPlayingResponse.ok) {
-      // No track currently playing
+      // 204 is Spotify's "nothing playing"; errors fall back the same way
       return new Response(JSON.stringify(null), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -36,7 +32,8 @@ export const GET: APIRoute = async () => {
     }
 
     const track = {
-      id: data.item.id, // Track ID to detect song changes
+      // Lets the widget detect song changes
+      id: data.item.id,
       name: data.item.name,
       artist: data.item.artists.map((a: any) => a.name).join(', '),
       album: data.item.album.name,
@@ -52,7 +49,8 @@ export const GET: APIRoute = async () => {
       status: 200,
       headers: { 
         'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=5', // Cache for 5 seconds to balance freshness and API calls
+        // Short enough to catch song changes, long enough to spare the Spotify API
+        'Cache-Control': 'public, max-age=5',
       },
     });
   } catch (error) {

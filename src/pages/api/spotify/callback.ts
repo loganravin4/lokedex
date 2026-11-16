@@ -1,17 +1,9 @@
 import type { APIRoute } from 'astro';
 
-/**
- * Spotify OAuth Callback Endpoint
- * 
- * This endpoint receives the authorization code from Spotify
- * and exchanges it for an access token and refresh token
- */
 export const GET: APIRoute = async (context) => {
-  // Try accessing URL from context
   const url = context.url;
   const request = context.request;
   
-  // Debug: Check what we're getting
   console.log('Callback Debug:');
   console.log('  context.url:', url);
   console.log('  context.url.href:', url.href);
@@ -19,12 +11,11 @@ export const GET: APIRoute = async (context) => {
   console.log('  context.url.searchParams.size:', url.searchParams.size);
   console.log('  request.url:', request.url);
   
-  // Parse query parameters
   const code = url.searchParams.get('code');
   const error = url.searchParams.get('error');
   const errorDescription = url.searchParams.get('error_description');
   
-  // Get all URL params for debugging
+  // Echoed on the no-code page to diagnose redirect mismatches
   const allParams: Record<string, string> = {};
   for (const [key, value] of url.searchParams.entries()) {
     allParams[key] = value;
@@ -221,7 +212,6 @@ export const GET: APIRoute = async (context) => {
   }
 
   try {
-    // Exchange authorization code for tokens
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
@@ -245,7 +235,6 @@ export const GET: APIRoute = async (context) => {
 
     const tokens = await tokenResponse.json();
 
-    // Display the refresh token to the user
     return new Response(
       `
       <!DOCTYPE html>

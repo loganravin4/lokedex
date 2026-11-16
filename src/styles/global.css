@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* Lokédex design tokens. The page is the device body; content regions are
-   either screens or label plates. Type colours encode data, never chrome. */
+   either screens or label plates. Type colors encode data, never chrome. */
 
 @theme {
   /* --- device chrome --- */

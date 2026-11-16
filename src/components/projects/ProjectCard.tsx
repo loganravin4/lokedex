@@ -16,10 +16,7 @@ interface ProjectCardProps {
   index: number;
 }
 
-/**
- * Full project entry for the complete list.
- * Shows everything at once, so unlike PokedexCard there is nothing to flip.
- */
+/** Unlike PokedexCard, shows everything at once, so there's nothing to flip. */
 export default function ProjectCard({ project, index }: ProjectCardProps) {
   const accent = categoryHex(project.types[0]);
   const entryNo = String(index + 1).padStart(3, '0');
