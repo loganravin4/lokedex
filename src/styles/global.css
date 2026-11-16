@@ -293,3 +293,22 @@
     transition: none !important;
   }
 }
+
+/* Spotify equalizer. Transform only and stepped, so bars move in pixel
+   jumps on the compositor. Each bar sets its own --eq-peak/dur/delay. */
+@keyframes eq-bounce {
+  0%, 100% { transform: scaleY(0.18); }
+  50%      { transform: scaleY(var(--eq-peak, 1)); }
+}
+.eq-bar {
+  transform-origin: bottom;
+  transform: scaleY(0.18);
+  animation: eq-bounce var(--eq-dur, 0.9s) steps(4, end) var(--eq-delay, 0s) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eq-bar {
+    animation: none !important;
+    transform: scaleY(calc(var(--eq-peak, 1) * 0.6));
+  }
+}
