@@ -1,105 +1,92 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { SpotifyTrack, SpotifyStats } from '../../lib/spotify';
 
+const IDLE_POLL_MS = 60_000;
+const MAX_PLAYING_POLL_MS = 30_000;
+const END_BUFFER_MS = 2_000;
+const RETRY_MS = 5_000;
+
+// Resolves undefined on a failed request, so it can't be mistaken for the
+// API's null "nothing playing". no-store so a browser-cached response can't
+// hand back the same snapshot.
+const getJson = <T,>(url: string): Promise<T | null | undefined> =>
+  fetch(url, { cache: 'no-store' })
+    .then((res) => (res.ok ? res.json() : undefined))
+    .catch(() => undefined);
+
 export default function SpotifyWidget() {
   const [currentlyPlaying, setCurrentlyPlaying] = useState<SpotifyTrack | null>(null);
   const [stats, setStats] = useState<SpotifyStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  // One self-scheduling loop. Every poll books the next one whatever the
+  // outcome, so a failed fetch, a repeated snapshot or a hidden tab can't
+  // stall it. Hidden tabs pause, then poll at once on return.
   useEffect(() => {
-    async function fetchSpotifyData() {
-      try {
-        setLoading(true);
-        // Try to get currently playing first
-        const playing = await fetch('/api/spotify/now-playing').then(res => 
-          res.ok ? res.json() : null
-        ).catch(() => null);
-        
-        setCurrentlyPlaying(playing);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let cancelled = false;
+    let lastStatsAt = 0;
 
-        // Get stats
-        const statsData = await fetch('/api/spotify/stats').then(res =>
-          res.ok ? res.json() : null
-        ).catch(() => null);
-        
-        setStats(statsData);
-        setError(false);
-      } catch (err) {
-        console.error('Error fetching Spotify data:', err);
-        setError(true);
-      } finally {
-        setLoading(false);
+    const schedule = (track: SpotifyTrack | null) => {
+      clearTimeout(timer);
+      if (cancelled || document.hidden) return;
+      let delay = IDLE_POLL_MS;
+      if (track) {
+        const remaining = (track.durationMs ?? 0) - (track.progressMs ?? 0);
+        delay = remaining > 0 ? Math.min(remaining + END_BUFFER_MS, MAX_PLAYING_POLL_MS) : END_BUFFER_MS;
       }
-    }
-
-    fetchSpotifyData();
-  }, []); // Only run once on mount
-
-  // Smart refresh: only update when song changes or when current song should end
-  useEffect(() => {
-    if (!currentlyPlaying?.isPlaying || document.hidden) {
-      return;
-    }
-
-    const progressMs = currentlyPlaying.progressMs || 0;
-    const durationMs = currentlyPlaying.durationMs || 0;
-    
-    // Calculate when to refresh:
-    // 1. When the current song should end (duration - progress + small buffer)
-    // 2. Or check every 30 seconds as a fallback to catch song changes
-    const timeRemaining = durationMs > 0 ? durationMs - progressMs : 30000;
-    const refreshDelay = Math.min(timeRemaining + 2000, 30000); // Add 2s buffer, max 30s
-
-    const timeout = setTimeout(() => {
-      if (document.hidden) return;
-      
-      fetch('/api/spotify/now-playing')
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          if (data?.isPlaying) {
-            // Always update so the effect reschedules the next poll (same-track
-            // refreshes used to no-op and stop polling after the first timeout)
-            setCurrentlyPlaying(data);
-          } else {
-            setCurrentlyPlaying(null);
-          }
-        })
-        .catch(() => {});
-    }, refreshDelay);
-
-    return () => clearTimeout(timeout);
-  }, [currentlyPlaying?.id, currentlyPlaying?.isPlaying, currentlyPlaying?.progressMs, currentlyPlaying?.durationMs]);
-
-  // When nothing is playing, poll for new playback and refresh recent tracks
-  useEffect(() => {
-    if (currentlyPlaying?.isPlaying || document.hidden) {
-      return;
-    }
-
-    const refreshIdle = () => {
-      if (document.hidden) return;
-
-      fetch('/api/spotify/now-playing')
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          if (data?.isPlaying) {
-            setCurrentlyPlaying(data);
-          }
-        })
-        .catch(() => {});
-
-      fetch('/api/spotify/stats')
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          if (data) setStats(data);
-        })
-        .catch(() => {});
+      timer = setTimeout(poll, delay);
     };
 
-    const interval = setInterval(refreshIdle, 60_000);
-    return () => clearInterval(interval);
-  }, [currentlyPlaying?.isPlaying]);
+    const retry = () => {
+      clearTimeout(timer);
+      if (!cancelled) timer = setTimeout(poll, RETRY_MS);
+    };
+
+    const poll = async () => {
+      clearTimeout(timer);
+      if (document.hidden) return;
+
+      const playing = await getJson<SpotifyTrack>('/api/spotify/now-playing');
+      if (cancelled) return;
+      // A failed request keeps the current track on screen and retries soon
+      if (playing === undefined && lastStatsAt !== 0) return retry();
+      const track = playing?.isPlaying ? playing : null;
+
+      // Stats on first load, then at most once a minute while idle
+      let freshStats: SpotifyStats | null | undefined = null;
+      const statsDue = lastStatsAt === 0 || (!track && Date.now() - lastStatsAt >= IDLE_POLL_MS);
+      if (statsDue) {
+        lastStatsAt = Date.now();
+        freshStats = await getJson<SpotifyStats>('/api/spotify/stats');
+      }
+
+      if (cancelled) return;
+      setCurrentlyPlaying(track);
+      if (freshStats) setStats(freshStats);
+      // Nothing playing and no stats means the API is down or unconfigured
+      if (statsDue) setError(!track && !freshStats);
+      setLoading(false);
+      if (playing === undefined) retry();
+      else schedule(track);
+    };
+
+    const onVisible = () => {
+      if (!document.hidden) poll();
+    };
+
+    poll();
+    document.addEventListener('visibilitychange', onVisible);
+    // iOS restores pages from bfcache without a visibilitychange
+    window.addEventListener('pageshow', onVisible);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('pageshow', onVisible);
+    };
+  }, []);
 
   // Tick the track clock locally between polls
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -164,7 +151,8 @@ export default function SpotifyWidget() {
               href={t.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="block font-body font-bold text-base sm:text-lg leading-snug text-ink hover:text-dex-blue break-words"
+              // Padding offset by negative margin: a 44px tap target, same layout
+              className="block -my-[11px] py-[11px] font-body font-bold text-base sm:text-lg leading-snug text-ink hover:text-dex-blue break-words"
             >
               {t.name}
             </a>
