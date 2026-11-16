@@ -26,3 +26,6 @@ pnpm-debug.log*
 
 # sanity dataset exports (large, binary)
 lokedex/backups/*.tar.gz
+
+# claude
+.claude/
