@@ -103,12 +103,12 @@ export default function SpotifyWidget() {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-r from-poke-grass/20 to-poke-electric/20 rounded-2xl p-4 md:p-6 border-4 border-poke-grass/40">
+      <div className="bg-paper-2 border-[3px] border-ink p-4 md:p-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-poke-grass/20 rounded-lg animate-pulse"></div>
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-paper-3 animate-pulse"></div>
           <div className="flex-1">
-            <div className="h-4 bg-poke-grass/20 rounded w-24 sm:w-32 mb-2 animate-pulse"></div>
-            <div className="h-3 bg-poke-grass/20 rounded w-20 sm:w-24 animate-pulse"></div>
+            <div className="h-4 bg-paper-3 w-24 sm:w-32 mb-2 animate-pulse"></div>
+            <div className="h-3 bg-paper-3 w-20 sm:w-24 animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -118,14 +118,14 @@ export default function SpotifyWidget() {
   if (error && !currentlyPlaying && !stats) {
     // Fallback: show generic message
     return (
-      <div className="bg-gradient-to-r from-poke-grass/20 to-poke-electric/20 rounded-2xl p-4 md:p-6 border-4 border-poke-grass/40">
+      <div className="bg-paper-2 border-[3px] border-ink p-4 md:p-6">
         <div className="flex items-center gap-3 sm:gap-4">
-          <div className="text-2xl sm:text-3xl">🎵</div>
+          <div className="shrink-0"><svg className="w-6 h-6 sm:w-7 sm:h-7 text-ink" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg></div>
           <div>
-            <p className="text-white/90 font-bold text-base sm:text-lg">
+            <p className="text-ink font-bold text-base sm:text-lg">
               Spotify listening stats
             </p>
-            <p className="text-white/70 text-xs sm:text-sm">(will almost ALWAYS be The Weeknd)</p>
+            <p className="text-ink-soft text-xs sm:text-sm">(will almost ALWAYS be The Weeknd)</p>
           </div>
         </div>
       </div>
@@ -133,12 +133,12 @@ export default function SpotifyWidget() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-poke-grass/20 to-poke-electric/20 rounded-2xl p-4 md:p-6 border-4 border-poke-grass/40">
+    <div className="bg-paper-2 border-[3px] border-ink p-4 md:p-6">
       {currentlyPlaying && currentlyPlaying.isPlaying ? (
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-2 h-2 bg-poke-grass rounded-full animate-pulse"></div>
-            <span className="text-poke-grass text-xs md:text-sm font-bold">NOW PLAYING</span>
+            <div className="w-2 h-2 bg-screen-0 rounded-full animate-pulse"></div>
+            <span className="text-screen-0 text-xs md:text-sm font-bold">NOW PLAYING</span>
           </div>
           
           <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center md:items-start">
@@ -147,7 +147,7 @@ export default function SpotifyWidget() {
               <div className="relative flex-shrink-0">
                 <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40">
                   {/* Vinyl Record */}
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gray-800 via-gray-900 to-black shadow-2xl border-4 border-gray-700 animate-spin-slow" style={{ animationDuration: '3s' }}>
+                  <div className="absolute inset-0 rounded-full bg-ink border-4 border-ink animate-spin-slow" style={{ animationDuration: '3s' }}>
                     {/* Vinyl Grooves */}
                     <div className="absolute inset-2 rounded-full border-2 border-gray-700/50"></div>
                     <div className="absolute inset-4 rounded-full border border-gray-700/30"></div>
@@ -181,14 +181,14 @@ export default function SpotifyWidget() {
                   href={currentlyPlaying.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-white font-bold text-lg sm:text-xl hover:text-poke-grass transition-colors block break-words"
+                  className="text-ink font-bold text-lg sm:text-xl hover:text-dex-blue transition-colors block break-words"
                 >
                   {currentlyPlaying.name}
                 </a>
-                <p className="text-white/80 text-sm sm:text-base break-words mt-1">{currentlyPlaying.artist}</p>
-                <p className="text-white/60 text-xs sm:text-sm break-words mt-1">{currentlyPlaying.album}</p>
+                <p className="text-ink-soft text-sm sm:text-base break-words mt-1">{currentlyPlaying.artist}</p>
+                <p className="text-ink-soft text-xs sm:text-sm break-words mt-1">{currentlyPlaying.album}</p>
                 {currentlyPlaying.releaseDate && (
-                  <p className="text-white/50 text-xs mt-2">
+                  <p className="text-ink-soft text-xs mt-2">
                     Released: {new Date(currentlyPlaying.releaseDate).getFullYear()}
                   </p>
                 )}
@@ -201,7 +201,7 @@ export default function SpotifyWidget() {
                   return (
                     <div
                       key={i}
-                      className="flex-1 bg-poke-grass rounded-t equalizer-bar"
+                      className="flex-1 bg-screen-0 equalizer-bar"
                       style={{
                         height: `${baseHeight}%`,
                         animation: `equalizer ${0.5 + i * 0.08}s ease-in-out infinite`,
@@ -217,27 +217,27 @@ export default function SpotifyWidget() {
       ) : (
         <div className="space-y-4">
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="text-2xl sm:text-3xl">🎵</div>
+            <div className="shrink-0"><svg className="w-6 h-6 sm:w-7 sm:h-7 text-ink" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg></div>
             <div>
-              <p className="text-white/90 font-bold text-base sm:text-lg">
+              <p className="text-ink font-bold text-base sm:text-lg">
                 Spotify listening stats
               </p>
               {stats?.topArtists && stats.topArtists.length > 0 && (
-                <p className="text-white/70 text-xs sm:text-sm mt-1">
-                  Top artist: <span className="font-bold text-poke-grass">{stats.topArtists[0].name}</span>
+                <p className="text-ink-soft text-xs sm:text-sm mt-1">
+                  Top artist: <span className="font-bold text-screen-0">{stats.topArtists[0].name}</span>
                 </p>
               )}
             </div>
           </div>
 
           {stats?.recentTracks && stats.recentTracks.length > 0 && (
-            <div className="pt-4 border-t border-poke-grass/20">
-              <p className="text-white/70 text-xs sm:text-sm mb-2 font-bold">Recently played:</p>
+            <div className="pt-4 border-t-[3px] border-ink">
+              <p className="text-ink-soft text-xs sm:text-sm mb-2 font-bold">Recently played:</p>
               <div className="space-y-2">
                 {stats.recentTracks.slice(0, 3).map((track, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-xs sm:text-sm">
-                    <span className="text-poke-grass">▶</span>
-                    <span className="text-white/80 break-words">
+                    <span className="text-screen-0">▶</span>
+                    <span className="text-ink-soft break-words">
                       {track.name} - {track.artist}
                     </span>
                   </div>

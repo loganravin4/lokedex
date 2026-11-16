@@ -1,0 +1,37 @@
+---
+/** A label plate on the device body: coloured header strip over a cream body. */
+interface Props {
+  title: string;
+  eyebrow?: string;
+  id?: string;
+  tone?: 'red' | 'blue' | 'ink' | 'yellow';
+  class?: string;
+}
+const { title, eyebrow, id, tone = 'red', class: className = '' } = Astro.props;
+
+const tones = {
+  red: 'bg-dex-red text-paper',
+  blue: 'bg-dex-blue text-paper',
+  ink: 'bg-ink text-paper',
+  // ink on yellow is the strongest pair in the system at 12.3:1
+  yellow: 'bg-dex-yellow text-ink',
+};
+---
+
+<section id={id} data-section={id} class={`pixel-lift bg-paper ${className}`}>
+  <header class:list={['flex items-baseline gap-3 px-4 py-3 border-b-[3px] border-ink', tones[tone]]}>
+    <span class="font-display text-[0.6rem] tracking-[0.2em] opacity-80 shrink-0" aria-hidden="true">
+      ▚▚
+    </span>
+    <h2 class="font-display text-sm md:text-base tracking-[0.1em]">{title}</h2>
+    {eyebrow && (
+      <span class="ml-auto hidden sm:block font-data text-[0.7rem] tracking-wide opacity-90 shrink-0">
+        {eyebrow}
+      </span>
+    )}
+  </header>
+
+  <div class="p-5 md:p-7">
+    <slot />
+  </div>
+</section>

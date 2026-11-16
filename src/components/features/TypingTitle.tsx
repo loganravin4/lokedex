@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { trackTitleView } from '../../lib/analytics';
 
 interface TypingTitleProps {
@@ -7,6 +7,8 @@ interface TypingTitleProps {
   typingSpeed?: number;
   deletingSpeed?: number;
   pauseDuration?: number;
+  /** Bump this to skip titles: +1 next, -1 previous. Driven by the D-pad. */
+  jump?: number;
 }
 
 // Fisher-Yates shuffle algorithm
@@ -25,6 +27,7 @@ export default function TypingTitle({
   typingSpeed = 100,
   deletingSpeed = 50,
   pauseDuration = 2000,
+  jump = 0,
 }: TypingTitleProps) {
   // Shuffle titles once on mount
   const shuffledTitles = useMemo(() => shuffleArray(titles), [titles]);
@@ -33,6 +36,20 @@ export default function TypingTitle({
   const [displayedText, setDisplayedText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPaused, setIsPaused] = useState(true); // Start paused to show first character after mount
+
+  // D-pad left/right jumps straight to another title instead of waiting for
+  // the type/delete cycle.
+  const lastJump = useRef(jump);
+  useEffect(() => {
+    if (jump === lastJump.current) return;
+    const delta = jump - lastJump.current;
+    lastJump.current = jump;
+    const len = shuffledTitles.length;
+    setCurrentTitleIndex((prev) => ((prev + delta) % len + len) % len);
+    setDisplayedText('');
+    setIsDeleting(false);
+    setIsPaused(false);
+  }, [jump, shuffledTitles.length]);
 
   useEffect(() => {
     // Initial delay before starting
@@ -87,7 +104,7 @@ export default function TypingTitle({
     <span>
       {baseText}
       {displayedText}
-      <span className="text-poke-yellow animate-pulse">|</span>
+      <span className="text-screen-3 animate-caret" aria-hidden="true">█</span>
     </span>
   );
 }

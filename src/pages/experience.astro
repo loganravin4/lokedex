@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Panel from '../components/ui/Panel.astro';
 import ExperienceCard from '../components/features/ExperienceCard';
 import AnalyticsTracker from '../components/analytics/AnalyticsTracker';
 import { fetchExperiences } from '../lib/fetchExperiences';
@@ -25,39 +26,30 @@ const sections = [
 
 <BaseLayout title="Gym Badges - Logan's Lokédex">
   <AnalyticsTracker pageName="Experience" client:load />
-  <main class="container mx-auto px-4 py-8 max-w-6xl">
-    <!-- Header -->
-    <section class="text-center mb-12 pt-8">
-      <h1 class="font-pokemon text-4xl md:text-5xl text-poke-yellow mb-4">
-        GYM BADGES
-      </h1>
-      <p class="text-xl text-white/80 mb-8">
-        My professional journey through different teams and organizations
+
+  <main class="mx-auto max-w-5xl px-4 py-8 md:py-12 flex flex-col gap-10">
+    <Panel title="GYM BADGES" eyebrow={`${experiences.length} EARNED`} tone="yellow">
+      <p class="text-sm text-ink-soft mb-5">
+        My professional journey through different teams and organizations.
       </p>
-      
       <a
         href="/"
-        class="inline-block bg-poke-red hover:bg-poke-red/80 transition-colors px-6 py-3 rounded-lg font-bold text-white"
+        class="inline-flex items-center gap-2 font-display text-[0.65rem] tracking-wider px-5 py-3.5 pixel-box pixel-press bg-paper-2 text-ink hover:bg-paper-3"
       >
-        ← Back to Home
+        <span aria-hidden="true">&#9666;</span>
+        BACK TO HOME
       </a>
-    </section>
+    </Panel>
 
-    <!-- Experience Timeline -->
     {sections.map((section) => (
-      <section class="pb-8 mb-8">
-        <div class="flex items-center gap-4 mb-8">
-          <div class="h-1 flex-1 bg-poke-yellow/30 rounded-full"></div>
-          <div class="text-center">
-            <h2 class="font-pokemon text-xl md:text-2xl text-poke-yellow">
-              {section.heading}
-            </h2>
-            <p class="text-sm text-white/60 mt-2">{section.blurb}</p>
-          </div>
-          <div class="h-1 flex-1 bg-poke-yellow/30 rounded-full"></div>
+      <section id={section.id} class="flex flex-col gap-6">
+        <div class="flex items-baseline gap-3 px-4 py-3 bg-ink border-[3px] border-ink">
+          <h2 class="font-display text-sm tracking-[0.12em] text-dex-yellow">{section.heading}</h2>
+          <p class="font-data text-xs text-paper/80 ml-auto hidden sm:block">{section.blurb}</p>
         </div>
+        <p class="font-data text-xs text-ink-soft sm:hidden -mt-3">{section.blurb}</p>
 
-        <div class="flex flex-col gap-12">
+        <div class="flex flex-col gap-6">
           {section.entries.map((experience, index) => (
             <ExperienceCard
               title={experience.title}
@@ -71,7 +63,7 @@ const sections = [
               description={experience.description}
               projects={experience.projects}
               index={index}
-              client:load
+              client:idle
             />
           ))}
         </div>

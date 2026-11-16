@@ -1,11 +1,36 @@
 @import "tailwindcss";
 
+/* Lokédex design tokens. The page is the device body; content regions are
+   either screens or label plates. Type colours encode data, never chrome. */
+
 @theme {
-  --color-poke-red: #FF0000;
-  --color-poke-blue: #3B4CCA;
-  --color-poke-yellow: #FFDE00;
-  --color-poke-black: #2B2B2B;
-  --color-poke-white: #FFFFFF;
+  /* --- device chrome --- */
+  --color-ink: #14120E;        /* warm print black - text + every border */
+  --color-ink-soft: #4A4438;   /* muted body text on paper (7.8:1) */
+  --color-paper: #EFE7D2;      /* bone device plastic - page bg */
+  --color-paper-2: #E2D7BC;    /* recessed panels, alternating bands */
+  --color-paper-3: #D0BF97;    /* dither dots, deep recess */
+  --color-dex-red: #C6272B;    /* shell red - header plates, primary CTA */
+  --color-dex-red-deep: #96181C; /* pressed edge */
+  --color-dex-blue: #20418C;   /* the lens - links, active state (7.8:1) */
+  --color-dex-blue-lit: #4C7FE0; /* lens highlight */
+  /* Pokémon yellow. Fill only, with ink text (12.3:1); as text on paper
+     it is 1.24:1 and unreadable. */
+  --color-dex-yellow: #FFCB05;
+  --color-dex-yellow-deep: #D9A800;
+
+  /* --- LCD screen (DMG panel) --- */
+  --color-screen-0: #0F380F;
+  --color-screen-1: #235022;
+  --color-screen-2: #7BA82B;   /* dim LCD tier - 4.69:1 on screen-0 */
+  --color-screen-3: #9BBC0F;   /* bright LCD tier - 6.0:1 on screen-0 */
+
+  /* --- indicator lamps --- */
+  --color-lamp-red: #E4483F;
+  --color-lamp-amber: #E8A33D;
+  --color-lamp-green: #58B24A;
+
+  /* --- POKEMON TYPES: data encoding only --- */
   --color-poke-normal: #A8A878;
   --color-poke-fire: #F08030;
   --color-poke-water: #6890F0;
@@ -25,54 +50,246 @@
   --color-poke-steel: #B8B8D0;
   --color-poke-fairy: #EE99AC;
 
-  --font-family-pokemon: "Press Start 2P", cursive;
-  --font-family-mono: "JetBrains Mono", monospace;
+  /* --- type --- */
+  --font-display: "Silkscreen", ui-monospace, monospace;
+  --font-body: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* --- hardware metrics --- */
+  --spacing-bezel: 0.75rem;
+  --radius-none: 0px;
 }
 
-@keyframes bounce-slow {
-  0%, 100% {
-    transform: translateY(-25%);
-    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+/* Base */
+
+@layer base {
+  * { box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
   }
-  50% {
-    transform: translateY(0);
-    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.65;
+    /* Device plastic grain */
+    background-image: radial-gradient(var(--color-paper-3) 0.5px, transparent 0.5px);
+    background-size: 3px 3px;
+  }
+
+  /* Keep pixel type on its grid */
+  .font-display, [class*="font-display"] {
+    -webkit-font-smoothing: none;
+    font-smooth: never;
+    letter-spacing: 0.02em;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.15;
+    text-transform: uppercase;
+  }
+
+  /* Keyboard focus stays visible and hard-edged */
+  :focus-visible {
+    outline: 3px solid var(--color-dex-blue);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--color-dex-red);
+    color: var(--color-paper);
   }
 }
 
-@keyframes pulse-slow {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
+/* Hardware utilities. Pixel corners come from layered box-shadows, not
+   clip-path, so borders stay crisp. */
+
+/* 3px pixel border with notched corners */
+@utility pixel-box {
+  border-radius: 0;
+  box-shadow:
+      0 -3px 0 0 var(--color-ink),
+      0  3px 0 0 var(--color-ink),
+     -3px 0 0 0 var(--color-ink),
+      3px 0 0 0 var(--color-ink);
+}
+
+/* Same, plus a hard offset drop shadow */
+@utility pixel-lift {
+  border-radius: 0;
+  box-shadow:
+      0 -3px 0 0 var(--color-ink),
+      0  3px 0 0 var(--color-ink),
+     -3px 0 0 0 var(--color-ink),
+      3px 0 0 0 var(--color-ink),
+      6px 6px 0 0 var(--color-ink);
+}
+
+/* Tactile press: the key travels into its own shadow */
+@utility pixel-press {
+  transition: transform 90ms steps(2, end), box-shadow 90ms steps(2, end);
+  &:active {
+    transform: translate(6px, 6px);
+    box-shadow:
+        0 -3px 0 0 var(--color-ink),
+        0  3px 0 0 var(--color-ink),
+       -3px 0 0 0 var(--color-ink),
+        3px 0 0 0 var(--color-ink);
   }
 }
 
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+/* CRT scanlines. Screens only, never behind body copy. */
+@utility crt {
+  position: relative;
+  isolation: isolate;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgb(0 0 0 / 0.26) 0px,
+      rgb(0 0 0 / 0.26) 1px,
+      transparent 1px,
+      transparent 3px
+    );
   }
 }
 
-@keyframes equalizer {
-  0%, 100% {
-    transform: scaleY(0.3);
-  }
-  50% {
-    transform: scaleY(1);
-  }
+/* Halftone dither for panel depth */
+@utility dither {
+  background-image: radial-gradient(var(--color-paper-3) 1px, transparent 1px);
+  background-size: 4px 4px;
 }
 
-.equalizer-bar {
-  transform-origin: bottom;
+/* Keep sprites and photos sharp inside screens */
+@utility pixelated {
+  image-rendering: pixelated;
+}
+
+/* Motion: geometric and stepped, never soft */
+
+@keyframes power-on {
+  0%   { transform: scaleY(0.004) scaleX(1); opacity: 1; }
+  45%  { transform: scaleY(0.004) scaleX(1); }
+  60%  { transform: scaleY(1) scaleX(1); }
+  100% { transform: scaleY(1) scaleX(1); }
+}
+
+@keyframes scan-sweep {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(400%); }
+}
+
+@keyframes lamp-blink {
+  0%, 60%  { opacity: 1; }
+  61%,100% { opacity: 0.25; }
+}
+
+@keyframes caret {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
 }
 
 @theme {
-  --animate-bounce-slow: bounce-slow 3s infinite;
-  --animate-pulse-slow: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  --animate-spin-slow: spin-slow 3s linear infinite;
+  --animate-power-on: power-on 620ms steps(8, end) 1 both;
+  --animate-scan-sweep: scan-sweep 2.4s linear infinite;
+  --animate-lamp-blink: lamp-blink 1.6s steps(1, end) infinite;
+  --animate-caret: caret 1s steps(1, end) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Reveals. Each one resolves to fully visible without JS or with reduced
+   motion, so content is never hidden behind a script. */
+
+@keyframes boot-line {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); }
+  to   { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+
+@keyframes lcd-on {
+  from { transform: scaleY(0.004); }
+  60%  { transform: scaleY(1); }
+  to   { transform: scaleY(1); }
+}
+
+/* Hero boot: children power on in sequence */
+.boot-seq > * {
+  /* `backwards` releases the clip-path, which would otherwise clip the
+     box-shadow borders of descendants */
+  animation: boot-line 320ms steps(5, end) backwards;
+}
+.boot-seq > *:nth-child(1) { animation-delay: 440ms; }
+.boot-seq > *:nth-child(2) { animation-delay: 530ms; }
+.boot-seq > *:nth-child(3) { animation-delay: 620ms; }
+.boot-seq > *:nth-child(4) { animation-delay: 710ms; }
+.boot-seq > *:nth-child(5) { animation-delay: 800ms; }
+.boot-seq > *:nth-child(6) { animation-delay: 890ms; }
+.boot-seq > *:nth-child(7) { animation-delay: 980ms; }
+
+.lcd-on {
+  animation: lcd-on 420ms cubic-bezier(0, 0.6, 0.3, 1) backwards;
+}
+
+/* Scroll reveal. One-shot transition on opacity and transform only, so it
+   stays on the compositor. Hidden state is scoped to .js. */
+@media (prefers-reduced-motion: no-preference) {
+  .js .reveal-band {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  .js .reveal-band.is-in {
+    opacity: 1;
+    transform: none;
+    /* Stepped, so it reads as a panel powering on */
+    transition: opacity 260ms steps(5, end), transform 260ms steps(5, end);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-seq > *,
+  .lcd-on,
+  .reveal-band {
+    animation: none !important;
+    opacity: 1 !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
+}
+
+/* Card flip. A plain transform, so it cannot desync from the face state. */
+.card-flip {
+  transition: transform 340ms cubic-bezier(0.3, 0, 0, 1);
+}
+
+/* Hardware buttons on the dex entry */
+.hw-btn {
+  transition: transform 80ms steps(2, end), filter 80ms steps(2, end);
+}
+.hw-btn:active {
+  transform: translate(2px, 2px);
+  filter: brightness(0.85);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-flip,
+  .hw-btn {
+    transition: none !important;
+  }
 }
