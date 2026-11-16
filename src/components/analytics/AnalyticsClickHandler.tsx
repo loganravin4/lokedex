@@ -40,7 +40,7 @@ export default function AnalyticsClickHandler() {
       // A '//' prefix is protocol-relative, so external
       if (href.startsWith('/') && !href.startsWith('//')) {
         const destination = href.replace(/^\/|\/$/g, '') || 'home';
-        if (destination !== window.location.pathname.replace(/^\/|\/$/g, '') || 'home') {
+        if (destination !== (window.location.pathname.replace(/^\/|\/$/g, '') || 'home')) {
           trackNavigationClick(destination);
         }
       }
